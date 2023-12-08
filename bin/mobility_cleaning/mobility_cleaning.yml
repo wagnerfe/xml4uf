@@ -1,0 +1,125 @@
+---
+# overview yml file to cut at bounds
+
+- name: 'ber'
+  path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+  day_hour: 7
+  resolution: polygons # acceptable values: 'points', 'polygons', 'hex'
+  create_id: True
+  bound: fua # so far: ucdb and fua are supported
+
+# - name: 'bos'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data' 
+#   day_hour: 9
+#   resolution: polygons
+#   create_id: False
+#   bound: fua 
+
+# - name: 'lax'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+#   resolution: polygons
+#   create_id: False
+#   bound: fua 
+
+# - name: 'sfo'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+#   resolution: polygons
+#   create_id: False
+#   bound: fua 
+
+# - name: 'rio'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+#   resolution: polygons
+#   create_id: False
+#   bound: fua 
+
+
+# - name: 'ber'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+#   resolution: polygons
+#   create_id: True
+#   bound: fua # so far: ucdb and fua are supported
+
+# - name: 'bos'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data' 
+#   day_hour: 9
+#   resolution: points
+#   create_id: True
+#   bound: fua 
+
+# - name: 'lax'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+#   resolution: points
+#   create_id: True
+#   bound: fua 
+
+# - name: 'sfo'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+#   resolution: points
+#   create_id: True
+#   bound: fua 
+
+# - name: 'rio'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+#   resolution: points
+#   create_id: True
+#   bound: fua 
+
+# - name: 'lis'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+#   resolution: hex
+#   create_id: True
+#   bound: ucdb # so far: ucdb and fua are supported
+
+
+#   - name: 'ber'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+#   resolution: hex # acceptable values: 'points', 'polygons', 'hex'
+#   create_id: True
+#   bound: fua
+
+# - name: 'bos'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data' 
+#   day_hour: 9
+#   resolution: hex
+#   create_id: True
+#   bound: fua 
+
+# - name: 'lax'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+#   resolution: hex
+#   create_id: True
+#   bound: fua
+
+# - name: 'sfo'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+#   resolution: hex
+#   create_id: True
+#   bound: fua
+
+# - name: 'rio'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+#   resolution: hex
+#   create_id: True
+#   bound: fua
+
+# - name: 'lis'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+#   resolution: hex
+#   create_id: True
+#   bound: fua
+
+

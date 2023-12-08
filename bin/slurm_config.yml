@@ -1,0 +1,123 @@
+jobs:
+  # - name: downloading-download_streets
+  #   script: /p/projects/eubucco/other_projects/urbanformvmt_global/xml4uf_global/xml4uf/downloading/download_streets.py
+  #   param_files: 
+  #     - /p/projects/eubucco/other_projects/urbanformvmt_global/xml4uf_global/bin/downloading/download_streets.yml
+  #   log_dir: /p/tmp/fewagner/xml4uf/streets_download
+  #   resources:
+  #     cpus: 1
+  #     time: "00:30:00"
+  #     partition: io
+
+
+  # - name: preprocessing-od_to_streets
+  #   script: /p/projects/eubucco/other_projects/urbanformvmt_global/xml4uf_global/xml4uf/preprocessing/od_to_street.py
+  #   param_files:
+  #     - /p/projects/eubucco/other_projects/urbanformvmt_global/xml4uf_global/bin/preprocessing/od_to_street.yml
+  #   log_dir: /p/tmp/fewagner/xml4uf/preprocessing
+  #   resources:
+  #     cpus: 5
+  #     time: "07:00:00"
+
+
+  # - name: preprocessing-preprocess_feature_data
+  #   script: /p/projects/eubucco/other_projects/urbanformvmt_global/xml4uf_global/xml4uf/preprocessing/preprocess_feature_data.py
+  #   param_files:
+  #     - /p/projects/eubucco/other_projects/urbanformvmt_global/xml4uf_global/bin/preprocessing/preprocess_feature_data.yml
+  #   log_dir: /p/tmp/fewagner/xml4uf/preprocessing
+  #   resources:
+  #     cpus: 3
+  #     time: "02:00:00"
+
+
+  # - name: preprocessing-preprocess_ber
+  #   script: /p/projects/eubucco/other_projects/urbanformvmt_global/xml4uf_global/xml4uf/preprocessing/preprocess_ber.py
+  #   param_files:
+  #     - /p/projects/eubucco/other_projects/urbanformvmt_global/xml4uf_global/bin/preprocessing/preprocess_ber.yml
+  #   log_dir: /p/tmp/fewagner/xml4uf/preprocessing
+  #   resources:
+  #     cpus: 1
+  #     time: "01:00:00"
+
+
+  # - name: postprocessing-cut_bounds
+  #   script: /p/projects/eubucco/other_projects/urbanformvmt_global/xml4uf_global/xml4uf/postprocessing/cut_bounds.py
+  #   param_files:
+  #     - /p/projects/eubucco/other_projects/urbanformvmt_global/xml4uf_global/bin/postprocessing/cut_bounds.yml
+  #   log_dir: /p/tmp/fewagner/xml4uf/postprocessing
+  #   resources:
+  #     cpus: 1
+  #     time: "00:20:00"
+
+
+  # - name: postprocessing-geom_to_hex
+  #   script: /p/projects/eubucco/other_projects/urbanformvmt_global/xml4uf_global/xml4uf/postprocessing/geom_to_hex.py
+  #   param_files:
+  #     - /p/projects/eubucco/other_projects/urbanformvmt_global/xml4uf_global/bin/postprocessing/geom_to_hex.yml
+  #   log_dir: /p/tmp/fewagner/xml4uf/postprocessing
+  #   resources:
+  #     cpus: 3
+  #     time: "03:00:00"
+
+
+  # - name: postprocessing-find_subcenters
+  #   script: /p/projects/eubucco/other_projects/urbanformvmt_global/xml4uf_global/xml4uf/postprocessing/find_subcenters.py
+  #   param_files:
+  #     - /p/projects/eubucco/other_projects/urbanformvmt_global/xml4uf_global/bin/postprocessing/find_subcenters.yml
+  #   log_dir: /p/tmp/fewagner/xml4uf/postprocessing
+  #   resources:
+  #     cpus: 8
+  #     time: "01:00:00"
+
+
+  # - name: feature_engineering-features
+  #   script: /p/projects/eubucco/other_projects/urbanformvmt_global/xml4uf_global/xml4uf/feature_engineering/features.py
+  #   param_files:
+  #     - /p/projects/eubucco/other_projects/urbanformvmt_global/xml4uf_global/bin/feature_engineering/features.yml
+  #   log_dir: /p/tmp/fewagner/xml4uf/feature_engineering
+  #   resources:
+  #     cpus: 5
+  #     time: "01:00:00"
+
+
+  # - name: ml-city_metrics
+  #   script: /p/projects/eubucco/other_projects/urbanformvmt_global/xml4uf_global/xml4uf/ml/city_metrics.py
+  #   param_files:
+  #     - /p/projects/eubucco/other_projects/urbanformvmt_global/xml4uf_global/bin/ml/city_metrics.yml
+  #   log_dir: /p/tmp/fewagner/xml4uf/ml
+  #   resources:
+  #     cpus: 1
+  #     time: "01:00:00"
+  
+
+  # - name: ml-causal_inference
+  #   script: /p/projects/eubucco/other_projects/urbanformvmt_global/xml4uf_global/xml4uf/ml/causal_inference.py
+  #   param_files:
+  #     - /p/projects/eubucco/other_projects/urbanformvmt_global/xml4uf_global/bin/ml/causal_inference.yml
+  #   log_dir: /p/tmp/fewagner/xml4uf/causal_inference
+  #   resources:
+  #     cpus: 4
+  #     time: "04:00:00"
+  #     partition: gpu
+
+
+  - name: ml-ml
+    script: /p/projects/eubucco/other_projects/urbanformvmt_global/xml4uf_global/xml4uf/ml/ml.py
+    param_files:
+      - /p/projects/eubucco/other_projects/urbanformvmt_global/xml4uf_global/bin/ml/ml.yml
+    log_dir: /p/tmp/fewagner/xml4uf/ml
+    resources:
+      cpus: 5
+      time: "02:00:00"
+
+
+properties:
+  conda_env: "/home/fewagner/.conda/envs/causal_env"
+  account: eubucco
+  log_level: WARN
+  exp_backoff_factor: 4
+  max_retries: 1
+  poll_interval: 30
+  slack:
+    channel: "#test-slurm-bot"
+    token: <insert token>

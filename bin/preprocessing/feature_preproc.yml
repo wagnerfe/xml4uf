@@ -1,0 +1,32 @@
+---
+# overview yml file for preprocessing pop dense data
+
+# - name: 'ber'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   path_airport_file: '0_raw_data/airports/airports.yml'
+#   features: ['airports']
+
+- name: 'bos'
+  path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+  path_airport_file: '0_raw_data/airports/airports.yml'
+  features: ['airports']
+
+- name: 'lax'
+  path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+  path_airport_file: '0_raw_data/airports/airports.yml'
+  features: ['airports']
+
+- name: 'sfo'
+  path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+  path_airport_file: '0_raw_data/airports/airports.yml'
+  features: ['airports']
+
+- name: 'rio'
+  path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+  path_airport_file: '0_raw_data/airports/airports.yml'
+  features: ['airports']
+
+# - name: 'lis'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   path_airport_file: '0_raw_data/airports/airports.yml'
+#   features: ['airports']

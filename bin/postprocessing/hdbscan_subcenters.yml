@@ -1,0 +1,11 @@
+---
+# overview yml file for preprocessing
+
+name: ['bos','lax','sfo','rio']
+path_root: ['/p/projects/eubucco/other_projects/urbanformvmt_global/data']
+day_hour: [9]
+bound: ['fua']
+cluster_percentage: [0.01, 0.05]
+sample_percentage: [0.05, 0.1, 0.2]
+  
+

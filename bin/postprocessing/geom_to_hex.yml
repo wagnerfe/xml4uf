@@ -1,0 +1,32 @@
+---
+# overview yml file for geom to hex conversion
+
+- name: 'ber'
+  features: ['od_origin','od_destination'] # chose which features should be converted to hex; sofar only 'od' is supported
+  day_hour: 9 
+  path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+
+- name: 'bos'
+  features: ['od_origin','od_destination'] # chose which features should be converted to hex; sofar only 'od' is supported
+  day_hour: 9 
+  path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+
+# - name: 'lax'
+#   features: ['od_origin','od_destination']
+#   day_hour: 9  
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+
+- name: 'sfo'
+  features: ['od_origin','od_destination']
+  day_hour: 9 
+  path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+
+- name: 'rio'  
+  features: ['od_origin','od_destination']
+  day_hour: 9 
+  path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+
+- name: 'lis'
+  features: ['od_origin','od_destination']
+  day_hour: 9 
+  path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'

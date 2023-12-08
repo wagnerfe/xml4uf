@@ -1,0 +1,113 @@
+# name: [['ber','bos','lax','sfo','rio']]
+# folder: ['t13_8ft_fold_experiments']
+# experiment: ['GPDC_RobustParCorr']
+# path_root: ['/p/projects/eubucco/other_projects/urbanformvmt_global/data']
+# day_hour: [9]
+# resolution: [polygons]
+# feature_sample: [Null]
+# fold: [0,1,2,3,4]
+# max_folds: [5]
+# random_fold: [False]
+# normalize: [True]
+# features:
+#   - - ft_dist_cbd
+#     - ft_employment_access_1
+#     - ft_pop_dense_meta
+#     - ft_income
+#     - ft_beta
+#     - ft_dist_airport
+#     - ft_network_length_km
+#     - ft_city_area_km2
+# target: [distance_m] # hex: 'distance_m','points_in_hex'; 'polygons': 'p_combined'; 'points':'distance_m'
+# sample_size: [Null]
+# scatter_plot: [False]
+# density_plot: [False]
+# dag_plot: [True]
+# cond_test_name: [GPDC,RobustParCorr]
+# tau_max: [0] # tigramite params
+# pc_alpha: [Null]
+# verbosity: [0]
+# assumptions: 
+#   - - 'distance_m'
+#     - 'ft_dist_cbd'
+#     - 'ft_income'
+
+- name: ['ber','bos','sfo','lax','rio','bog']
+  folder: 't32_fua'
+  experiment: 'local_pop_dense'
+  path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+  day_hour: [6,7,8,9]
+  resolution: polygons
+  bound: fua
+  feature_sample: Null
+  fold: Null
+  max_folds: Null
+  random_fold: balance_city_samples
+  normalize: True
+  features: # run params
+    - ft_dist_cbd
+    - ft_employment_access_01
+    #- ft_job_dense
+    - ft_pop_dense
+    - ft_income
+    #- ft_transit_access
+    #- ft_lu_entropy_normed
+    - ft_beta
+    #- ft_dist_airport
+    # # - ft_network_length_km
+    # - ft_city_area_km2
+  clean_kwargs: # dict with cleaning params. 
+    set_lower_bound: # set_lower_bounds and set_upper_bounds take <feature>:<cutt off value> as dict
+      num_trips: 10
+      ft_pop_dense: 0.000001
+    clean_airports: True # can be removed or set to False
+  target: distance_m # hex: 'distance_m','points_in_hex'; 'polygons': 'p_combined'; 'points':'distance_m'
+  sample_size: Null
+  scatter_plot: False
+  density_plot: False
+  dag_plot: True
+  save_plots: True
+  cond_test_name: RobustParCorr #CMIknn
+  tau_max: 0 # tigramite params
+  pc_alpha: 0.01 # [0.1, 0.01,0.001] 
+  verbosity: 1
+  assumptions: 
+    - 'distance_m'
+    - 'ft_dist_cbd'
+    - 'ft_income'
+
+
+# - name: ['ber','bos','lax','rio','sfo','bog']
+#   folder: 't16_1st_submission'
+#   experiment: 'v1_6_cities_normed_balance_no_airport'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+#   resolution: polygons
+#   feature_sample: Null
+#   fold: Null
+#   max_folds: Null
+#   random_fold: balance_city_samples
+#   normalize: False
+#   features: # run params
+#     - ft_dist_cbd
+#     - ft_employment_access_1
+#     #- ft_job_dense
+#     - ft_pop_dense_meta
+#     - ft_income
+#     - ft_beta
+#     #- ft_dist_airport
+#     # # - ft_network_length_km
+#     # - ft_city_area_km2
+#   target: distance_m # hex: 'distance_m','points_in_hex'; 'polygons': 'p_combined'; 'points':'distance_m'
+#   sample_size: Null
+#   scatter_plot: False
+#   density_plot: False
+#   dag_plot: True
+#   cond_test_name: CMIknn
+#   tau_max: 0 # tigramite params
+#   pc_alpha: 0.025 # [0.1, 0.01,0.001] 
+#   verbosity: 0
+#   assumptions: 
+#     - 'distance_m'
+#     - 'ft_dist_cbd'
+#     - 'ft_income'
