@@ -283,11 +283,13 @@ def center_cols_sum(df):
 def get_iou_from_clean_kwargs(**clean_kwargs):
     if 'iou' in clean_kwargs.keys():
         return clean_kwargs['iou']
+    else: 
+        return None
 
 
 def load_cities_sample(city_names = utils.DEFAULT_CITIES,
                         target ='distance_m',
-                        path_root=utils.PATH_ROOT,
+                        path_root=utils.get_path_root(),
                         day_hour=[6,7,8,9],
                         bound='fua',
                         features=utils.DEFAULT_FEATURES,
@@ -298,7 +300,10 @@ def load_cities_sample(city_names = utils.DEFAULT_CITIES,
     city_scaler={}
     df=pd.DataFrame()
     
-    iou = get_iou_from_clean_kwargs(**clean_kwargs)
+    if clean_kwargs is not None:
+        iou = get_iou_from_clean_kwargs(**clean_kwargs)
+    else:
+        iou=None
 
     if add_geoms: city_dict = {}
     
