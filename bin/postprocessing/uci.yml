@@ -1,0 +1,10 @@
+---
+# overview yml file for preprocessing
+- name: 'lax'
+  path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+  hex_size: 8
+  metric: 'pop_dense' # 'num_jobs'
+  boundary: 'ucdb' # can be 'fua', 'ucdb', or None
+
+  
+

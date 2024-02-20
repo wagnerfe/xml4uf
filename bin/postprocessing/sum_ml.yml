@@ -1,0 +1,39 @@
+
+# - run_name: t25_1st_submission/individual_cities_normed/working_paper_results/ckf_only_shap
+#   file_name: ml_bebobolarisf_pol_XGBRegressor_dis_spNone_ns5640.pkl 
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   several_folders: False
+#   summarise_run: False
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9  
+#   shap_type: 'causal_shap_test' # TODO adjust to auto load shap type
+#   figures: 
+#   # - map 
+#   # - map_w_scatter 
+#   # - map_w_ft_map 
+#   - city_scatter 
+#   - beeswarm
+#   # - shap_comparison
+#   #- bars
+#   title: True
+#   rescale_shap: True
+
+
+- run_name: t3/tests_new_pipeline
+  file_name: ml_bolari_pol_XGBRegressor_dis_spNone_ns3453.pkl
+  path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+  several_folders: False
+  summarise_run: False
+  day_hour: 9  
+  shap_type: 'shap_test' # TODO adjust to auto load shap type
+  figures: 
+  - map 
+  # - map_w_scatter 
+  # - map_w_ft_map 
+  #- city_scatter
+  #- city_individual_scatter 
+  #- beeswarm
+  # - shap_comparison
+  #- bars
+  title: True
+  rescale_shap: False

@@ -1,0 +1,62 @@
+---
+# overview yml file for preprocessing
+
+- name: 'ber'
+  epsilon: 1 #km radius
+  buffer_percentage: 0.01 # percentage of trip sample within db scan buffer
+  save_fig: True
+  save_cluster: True
+  sample_factor: 0.5 # percentage factor of whole sample 
+  path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+  day_hour: 9
+  
+
+# - name: 'bos'  
+#   epsilon: 1
+#   buffer_percentage: 0.01 # percentage of trip sample within db scan buffer
+#   save_fig: True
+#   save_cluster: True
+#   sample_factor: Null
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+  
+
+# - name: 'lax'  
+#   epsilon: 1
+#   buffer_percentage: 0.01 # percentage of trip sample within db scan buffer
+#   save_fig: True
+#   save_cluster: True
+#   sample_factor: Null
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data' 
+#   day_hour: 9
+  
+
+# - name: 'sfo'  
+#   epsilon: 1
+#   buffer_percentage: 0.01 # percentage of trip sample within db scan buffer
+#   save_fig: True
+#   save_cluster: True
+#   sample_factor: Null
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+  
+
+# - name: 'rio'  
+#   epsilon: 1
+#   buffer_percentage: 0.01 # percentage of trip sample within db scan buffer
+#   save_fig: True
+#   save_cluster: True
+#   sample_factor: Null
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+  
+
+# - name: 'lis'  
+#   epsilon: 1
+#   buffer_percentage: 0.01 # percentage of trip sample within db scan buffer
+#   save_fig: True
+#   save_cluster: True
+#   sample_factor: Null
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+  

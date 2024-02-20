@@ -1,0 +1,43 @@
+---
+# overview yml file for preprocessing
+
+# - name: 'bos'
+#   filter_streets: '["highway"~"residential|secondary|tertiary"]'
+#   full_graph: true
+#   filtered_graph: true
+#   csv_format: true
+#   save_bound: true
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+  
+# - name: 'lax'
+#   filter_streets: '["highway"~"residential|secondary|tertiary"]'
+#   full_graph: true
+#   filtered_graph: true
+#   csv_format: true
+#   save_bound: true
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+
+- name: 'sfo'
+  filter_streets: '["highway"~"residential|secondary|tertiary"]'
+  full_graph: false
+  filtered_graph: true
+  csv_format: false
+  save_bound: false
+  path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+
+# - name: 'rio'
+#   filter_streets: '["highway"~"residential|secondary|tertiary"]'
+#   full_graph: true
+#   filtered_graph: False
+#   csv_format: True
+#   save_bound: False
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+
+# - name: 'lis'
+#   filter_streets: '["highway"~"residential|secondary|tertiary"]'
+#   full_graph: true
+#   filtered_graph: false
+#   csv_format: True
+#   save_bound: false
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+

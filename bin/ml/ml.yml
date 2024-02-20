@@ -1,0 +1,376 @@
+# ---
+
+- name: ['ber','bos','lax','sfo','rio','bog']
+  run_name: 't27_submission/emp_01_perc_cleaned_20p_pop'
+  path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+  day_hour: [6,7,8,9]
+  resolution: polygons
+  feature_sample: Null
+  bound: fua
+  features:
+    - ft_dist_cbd
+    - ft_employment_access_01
+    - ft_pop_dense_meta
+    - ft_income
+    - ft_beta
+  causal_order: [['ft_dist_cbd'], ['ft_pop_dense_meta'], ['ft_employment_access_01'],['ft_beta']]
+  eval_features: False
+  eval_shap: ['tree_shap','causal_shap']
+  track_comet: False
+  target: distance_m # hex: 'distance_m','points_in_hex'; 'polygons': 'p_combined'; 'points':'distance_m'
+  sample_size: Null
+  figures: 
+    # - map 
+    # - map_w_scatter 
+    # - map_w_ft_map 
+    #- city_scatter 
+    #- beeswarm
+  normalize_center: True
+  clean_kwargs: # dict with cleaning params. 
+    set_lower_bound: # set_lower_bounds and set_upper_bounds take <feature>:<cutt off value> as dict
+      num_trips: 50
+      ft_pop_dense_meta: 0.00002
+    clean_airports: True # can be removed or set to False
+  model: XGBRegressor # LinearRegression, XGBRegressor, GradientBoostingRegressor, RandomForestRegressor
+  split: null
+  folds: 'city'
+  hyper_params: # all values must be list for hype tuning 
+    learning_rate: [0.1,0.01,0.001]
+    n_estimators: [1000,2000,5000]
+    max_depth: [1,3,5]
+    colsample_bytree: [0.5]
+    colsample_bylevel: [0.5]
+
+
+
+# - name: ['ber','bos','lax','sfo','rio','bog']
+#   run_name: 't26_new_pipeline/old_ft'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: [6,7,8,9]
+#   resolution: polygons
+#   feature_sample: Null
+#   bound: fua
+#   features:
+#     - ft_dist_cbd_orig
+#     - ft_employment_access_1_orig
+#     - ft_pop_dense_meta_orig
+#     - ft_income_orig
+#     - ft_beta_orig
+#   causal_feature_path: t3/new_pipeline_all_features_all_times
+#   eval_features: False
+#   eval_shap: ['causal_shap','tree_shap']
+#   track_comet: False
+#   target: distance_m # hex: 'distance_m','points_in_hex'; 'polygons': 'p_combined'; 'points':'distance_m'
+#   sample_size: Null
+#   figures: 
+#     # - map 
+#     # - map_w_scatter 
+#     # - map_w_ft_map 
+#     - city_scatter 
+#     #- beeswarm
+#   normalize_center: True
+#   model: XGBRegressor # LinearRegression, XGBRegressor, GradientBoostingRegressor, RandomForestRegressor
+#   split: null
+#   folds: 'city'
+#   hyper_params: # all values must be list for hype tuning 
+#     learning_rate: 0.001
+#     n_estimators: 5000
+#     max_depth: 1
+#     colsample_bytree: 0.5
+#     colsample_bylevel: 0.5
+
+
+
+# - name: ['ber','bos','lax','sfo','rio','bog']
+#   run_name: 't25_1st_submission/individual_cities_normed/shap_scale_test1'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+#   resolution: polygons
+#   feature_sample: Null
+#   bound: fua
+#   features:
+#     #- ft_dist_cbd
+#     - ft_employment_access_01
+#     # - ft_pop_dense
+#     # - ft_job_dense
+#     # - ft_income
+#     # - ft_beta
+#     # - ft_dist_airport
+#   causal_feature_path: Null
+#   eval_features: False
+#   eval_shap: ['tree_shap'] # can be provided as list incl. [tree_shap, causal_shap]
+#   track_comet: False
+#   target: distance_m # hex: 'distance_m','points_in_hex'; 'polygons': 'p_combined'; 'points':'distance_m'
+#   sample_size: Null
+#   figures: 
+#     # - map 
+#     # - map_w_scatter 
+#     # - map_w_ft_map 
+#     # - city_scatter 
+#     # - beeswarm
+#   normalize_center: True
+#   model: XGBRegressor # LinearRegression, XGBRegressor, GradientBoostingRegressor, RandomForestRegressor
+#   split: Null
+#   folds: 'city' # takes number of folds as int or 'city' activates city fold cross val
+#   hyper_params: # all values must be list for hype tuning 
+#     learning_rate: 0.001
+#     n_estimators: 5000
+#     max_depth: 5
+#     colsample_bytree: 0.5
+#     colsample_bylevel: 0.5
+
+
+# - name: ['bos','bog']
+#   run_name: 't25_1st_submission/test_kfold_vs_individual'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+#   resolution: polygons
+#   feature_sample: Null
+#   bound: fua
+#   features:
+#     - ft_dist_cbd_orig
+#     - ft_employment_access_1_orig
+#     - ft_pop_dense_meta_orig
+#     - ft_income_orig
+#     - ft_beta_orig
+#   causal_feature_path: t16_1st_submission/v1_6_cities_normed_balance_no_airport
+#   eval_features: False
+#   eval_shap: ['tree_shap']
+#   track_comet: False
+#   target: distance_m # hex: 'distance_m','points_in_hex'; 'polygons': 'p_combined'; 'points':'distance_m'
+#   sample_size: Null
+#   figures: 
+#     - map 
+#     - map_w_scatter 
+#     - map_w_ft_map 
+#     - city_scatter 
+#     - beeswarm
+#   normalize_center: True
+#   model: XGBRegressor # LinearRegression, XGBRegressor, GradientBoostingRegressor, RandomForestRegressor
+#   split: null
+#   folds: 'city'
+#   hyper_params: # all values must be list for hype tuning 
+#     learning_rate: 0.001
+#     n_estimators: 5000
+#     max_depth: 1
+#     colsample_bytree: 0.5
+#     colsample_bylevel: 0.5
+
+
+# - name: ['ber']
+#   run_name: 't25_1st_submission/test_kfold_vs_individual'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+#   resolution: polygons
+#   feature_sample: Null
+#   bound: fua
+#   features:
+#     - ft_dist_cbd_orig
+#     - ft_employment_access_1_orig
+#     - ft_pop_dense_meta_orig
+#     - ft_income_orig
+#     - ft_beta_orig
+#   causal_feature_path: t16_1st_submission/v1_6_cities_normed_balance_no_airport
+#   eval_features: False
+#   eval_shap: [causal_shap] # can be provided as list incl. [tree_shap, causal_shap]
+#   track_comet: False
+#   target: distance_m # hex: 'distance_m','points_in_hex'; 'polygons': 'p_combined'; 'points':'distance_m'
+#   sample_size: Null
+#   figures: 
+#     - map 
+#     - map_w_scatter 
+#     - map_w_ft_map 
+#     - city_scatter 
+#     - beeswarm
+#   normalize_center: True
+#   model: XGBRegressor # LinearRegression, XGBRegressor, GradientBoostingRegressor, RandomForestRegressor
+#   split: Null
+#   folds: 3 # takes number of folds as int or 'city' activates city fold cross val
+#   hyper_params: # all values must be list for hype tuning 
+#     learning_rate: [0.1,0.01,0.001]
+#     n_estimators: [1000,2000,5000]
+#     max_depth: [1,3,5]
+#     colsample_bytree: [0.5]
+#     colsample_bylevel: [0.5]
+  
+# - name: ['ber','bos','lax','sfo','rio','bog']
+#   run_name: 't25_1st_submission/individual_cities_normed/shap_scale_test1'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+#   resolution: polygons
+#   feature_sample: Null
+#   bound: fua
+#   features:
+#     #- ft_dist_cbd
+#     - ft_employment_access_01
+#     # - ft_pop_dense
+#     # - ft_job_dense
+#     # - ft_income
+#     # - ft_beta
+#     # - ft_dist_airport
+#   causal_feature_path: Null
+#   eval_features: False
+#   eval_shap: ['tree_shap'] # can be provided as list incl. [tree_shap, causal_shap]
+#   track_comet: False
+#   target: distance_m # hex: 'distance_m','points_in_hex'; 'polygons': 'p_combined'; 'points':'distance_m'
+#   sample_size: Null
+#   figures: 
+#     # - map 
+#     # - map_w_scatter 
+#     # - map_w_ft_map 
+#     # - city_scatter 
+#     # - beeswarm
+#   normalize_center: True
+#   model: XGBRegressor # LinearRegression, XGBRegressor, GradientBoostingRegressor, RandomForestRegressor
+#   split: Null
+#   folds: 'city' # takes number of folds as int or 'city' activates city fold cross val
+#   hyper_params: # all values must be list for hype tuning 
+#     learning_rate: 0.001
+#     n_estimators: 5000
+#     max_depth: 5
+#     colsample_bytree: 0.5
+#     colsample_bylevel: 0.5
+
+# - name: ['lax']
+#   run_name: 't25_1st_submission/test_kfold_vs_individual'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+#   resolution: polygons
+#   feature_sample: Null
+#   bound: fua
+#   features:
+#     - ft_dist_cbd_orig
+#     - ft_employment_access_1_orig
+#     - ft_pop_dense_meta_orig
+#     - ft_income_orig
+#     - ft_beta_orig
+#   causal_feature_path: t16_1st_submission/v1_6_cities_normed_balance_no_airport
+#   eval_features: False
+#   eval_shap: [causal_shap] # can be provided as list incl. [tree_shap, causal_shap]
+#   track_comet: False
+#   target: distance_m # hex: 'distance_m','points_in_hex'; 'polygons': 'p_combined'; 'points':'distance_m'
+#   sample_size: Null
+#   figures: 
+#     - map 
+#     - map_w_scatter 
+#     - map_w_ft_map 
+#     - city_scatter 
+#     - beeswarm
+#   normalize_center: True
+#   model: XGBRegressor # LinearRegression, XGBRegressor, GradientBoostingRegressor, RandomForestRegressor
+#   split: Null
+#   folds: 3 # takes number of folds as int or 'city' activates city fold cross val
+#   hyper_params: # all values must be list for hype tuning 
+#     learning_rate: [0.1,0.01,0.001]
+#     n_estimators: [1000,2000,5000]
+#     max_depth: [1,3,5]
+#     colsample_bytree: [0.5]
+#     colsample_bylevel: [0.5]
+
+# - name: ['sfo']
+#   run_name: 't25_1st_submission/test_kfold_vs_individual'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+#   resolution: polygons
+#   feature_sample: Null
+#   bound: fua
+#   features:
+#     - ft_dist_cbd_orig
+#     - ft_employment_access_1_orig
+#     - ft_pop_dense_meta_orig
+#     - ft_income_orig
+#     - ft_beta_orig
+#   causal_feature_path: t16_1st_submission/v1_6_cities_normed_balance_no_airport
+#   eval_features: False
+#   eval_shap: [causal_shap] # can be provided as list incl. [tree_shap, causal_shap]
+#   track_comet: False
+#   target: distance_m # hex: 'distance_m','points_in_hex'; 'polygons': 'p_combined'; 'points':'distance_m'
+#   sample_size: Null
+#   figures: 
+#     - map 
+#     - map_w_scatter 
+#     - map_w_ft_map 
+#     - city_scatter 
+#     - beeswarm
+#   normalize_center: True
+#   model: XGBRegressor # LinearRegression, XGBRegressor, GradientBoostingRegressor, RandomForestRegressor
+#   split: Null
+#   folds: 3 # takes number of folds as int or 'city' activates city fold cross val
+#   hyper_params: # all values must be list for hype tuning 
+#     learning_rate: [0.1,0.01,0.001]
+#     n_estimators: [1000,2000,5000]
+#     max_depth: [1,3,5]
+#     colsample_bytree: [0.5]
+#     colsample_bylevel: [0.5]
+
+# - name: ['rio']
+#   run_name: 't25_1st_submission/test_kfold_vs_individual'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+#   resolution: polygons
+#   feature_sample: Null
+#   bound: fua
+#   features:
+#     - ft_dist_cbd_orig
+#     - ft_employment_access_1_orig
+#     - ft_pop_dense_meta_orig
+#     - ft_income_orig
+#     - ft_beta_orig
+#   causal_feature_path: t16_1st_submission/v1_6_cities_normed_balance_no_airport
+#   eval_features: False
+#   eval_shap: [causal_shap] # can be provided as list incl. [tree_shap, causal_shap]
+#   track_comet: False
+#   target: distance_m # hex: 'distance_m','points_in_hex'; 'polygons': 'p_combined'; 'points':'distance_m'
+#   sample_size: Null
+#   figures: 
+#     - map 
+#     - map_w_scatter 
+#     - map_w_ft_map 
+#     - city_scatter 
+#     - beeswarm
+#   normalize_center: True
+#   model: XGBRegressor # LinearRegression, XGBRegressor, GradientBoostingRegressor, RandomForestRegressor
+#   split: Null
+#   folds: 3 # takes number of folds as int or 'city' activates city fold cross val
+#   hyper_params: # all values must be list for hype tuning 
+#     learning_rate: [0.1,0.01,0.001]
+#     n_estimators: [1000,2000,5000]
+#     max_depth: [1,3,5]
+#     colsample_bytree: [0.5]
+#     colsample_bylevel: [0.5]
+
+# - name: ['bog']
+#   run_name: 't25_1st_submission/test_kfold_vs_individual'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+#   resolution: polygons
+#   feature_sample: Null
+#   bound: fua
+#   features:
+#     - ft_dist_cbd_orig
+#     - ft_employment_access_1_orig
+#     - ft_pop_dense_meta_orig
+#     - ft_income_orig
+#     - ft_beta_orig
+#   causal_feature_path: t16_1st_submission/v1_6_cities_normed_balance_no_airport
+#   eval_features: False
+#   eval_shap: [causal_shap] # can be provided as list incl. [tree_shap, causal_shap]
+#   track_comet: False
+#   target: distance_m # hex: 'distance_m','points_in_hex'; 'polygons': 'p_combined'; 'points':'distance_m'
+#   sample_size: Null
+#   figures: 
+#     - map 
+#     - map_w_scatter 
+#     - map_w_ft_map 
+#     - city_scatter 
+#     - beeswarm
+#   normalize_center: True
+#   model: XGBRegressor # LinearRegression, XGBRegressor, GradientBoostingRegressor, RandomForestRegressor
+#   split: Null
+#   folds: 3 # takes number of folds as int or 'city' activates city fold cross val
+#   hyper_params: # all values must be list for hype tuning 
+#     learning_rate: [0.1,0.01,0.001]
+#     n_estimators: [1000,2000,5000]
+#     max_depth: [1,3,5]
+#     colsample_bytree: [0.5]
+#     colsample_bylevel: [0.5]

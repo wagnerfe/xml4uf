@@ -1,0 +1,44 @@
+---
+# overview yml file for preprocessing
+
+# - name: 'ber'
+#   run_name: 'gmaps'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   metrics: ['pop_dense_cbd'] # can contain: 'global_closeness', 'pop_dense_cbd'
+#   buff_dist: 1000 #
+#   to_hex_size: 8
+
+- name: 'bos'
+  run_name: 'test_gmaps'
+  path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+  metrics: ['pop_dense_cbd'] # can contain: 'global_closeness', 'pop_dense_cbd'
+  buff_dist: 1000 #
+  to_hex_size: 8
+
+# - name: 'lax'
+#   run_name: 'gmaps'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   metrics: ['pop_dense_cbd']
+#   buff_dist: 1000 #
+#   to_hex_size: 8
+
+# - name: 'sfo'
+#   run_name: 'gmaps'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   metrics: ['pop_dense_cbd']
+#   buff_dist: 1000 #
+#   to_hex_size: 8
+
+# - name: 'rio'
+#   run_name: 'gmaps'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   metrics: ['pop_dense_cbd']
+#   buff_dist: 1000 #
+#   to_hex_size: 8
+
+# - name: 'lis'
+#   run_name: 'gmaps'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   metrics: ['pop_dense_cbd']
+#   buff_dist: 1000 #
+#   to_hex_size: 8

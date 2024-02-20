@@ -1,0 +1,66 @@
+---
+# overview yml file for preprocessing
+
+# Warning: Berlin takes different inputs than rest due to inrix data origin
+- name: 'ber'
+  process_raw_data: True # True: complete raw inrix wil be preped; 
+  preproc_inrix: False
+  path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+  day_hour: 7
+  file_name: 'ber_trips_fua_buff1000m_weekday_t7_10_consumer.csv'
+  zip_grid: 'plz' # choose between 'lor' or 'plz' grid
+  raw_file_name: 'tripdata.csv'
+  boundary_file_name: 'ber_fua_buff_1000m_bound_epsg25833.csv'
+  buffersize: 1
+  lmin: 2000 #m
+  lmax: null
+  weekend: True
+  starttime: 0
+  endtime: 24
+  consumer: True
+
+# - name: 'ber'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+#   filters: ['residential','tertiary']
+#   sample_on_network: True
+#   calc_distance: True
+
+
+# - name: 'lax'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+#   filters: ['residential','tertiary']
+#   sample_on_network: True
+#   calc_distance: True
+
+
+# - name: 'sfo'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9  
+#   filters: ['residential','tertiary']
+#   sample_on_network: False
+#   calc_distance: True
+  
+
+# - name: 'rio'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+#   filters: ['residential','tertiary']
+#   sample_on_network: True
+#   calc_distance: True
+
+
+# - name: 'lis'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+#   filters: ['residential','tertiary']
+#   sample_on_network: True
+#   calc_distance: True
+
+# - name: 'ber'
+#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+#   day_hour: 9
+#   filters: ['residential','tertiary']
+#   sample_on_network: True
+#   calc_distance: True

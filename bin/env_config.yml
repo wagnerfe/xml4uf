@@ -1,0 +1,3 @@
+# path configs
+path_data: 'p/projects/eubucco/other_projects/urbanformvmt_global/data'
+path_mount: '/Users/felix/cluster_remote'

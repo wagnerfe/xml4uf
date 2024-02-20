@@ -1,0 +1,12 @@
+[submodule "submodules/ufo-map"]
+	path = submodules/ufo-map
+	url = git@github.com:ai4up/ufo-map.git
+[submodule "submodules/slurm-pipeline"]
+	path = submodules/slurm-pipeline
+	url = git@github.com:ai4up/slurm-pipeline.git
+[submodule "submodules/tigramite"]
+	path = submodules/tigramite
+	url = git@github.com:jakobrunge/tigramite.git
+[submodule "submodules/causal_shap_python"]
+	path = submodules/causal_shap_python
+	url = git@github.com:wagnerfe/causal_shap_python.git

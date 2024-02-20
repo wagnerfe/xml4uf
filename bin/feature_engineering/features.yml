@@ -1,0 +1,34 @@
+---
+# overview yml file for preprocessing
+- name: 'bos'  
+  path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+  bound: 'fua'
+  target: 'distance_m'
+  od_col: 'origin'
+  target_time:
+    - 7
+    #- 8
+    #- 9  
+  features:
+    - ft_dist_cbd
+    #- ft_dist_airport
+    #- ft_dist_local_cbd
+    # - ft_job_dense
+    # - ft_employment_access
+    # - ft_pop_dense
+    - ft_income
+    # - ft_beta
+    #- ft_city_area_km2
+  testing: False
+
+# # overview yml file for preprocessing
+# name: ['ber','bos','lax','sfo','rio']  
+# path_root: ['/p/projects/eubucco/other_projects/urbanformvmt_global/data']
+# day_hour: [9]
+# sample_size: [Null]
+# resolution: [polygons]
+# features:
+#   - - ft_pop_dense
+#     - ft_trips_capita
+# location: [origin]
+# buffer_size: [500]

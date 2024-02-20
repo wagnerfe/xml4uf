@@ -1,0 +1,7 @@
+- folder: t12_6ft_fold_experiments
+  experiment: t12_2_all_cities_kfold_RobustParCorr_nonnorm
+  path_root: /p/projects/eubucco/other_projects/urbanformvmt_global/data
+  summary_dag_plot: True
+  summary_bar_plot: False
+
+
