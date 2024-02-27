@@ -51,7 +51,7 @@ class Predictor():
         self.city = None    
 
 
-    def splitting(self, city, num_cities):
+    def splitting(self, city, num_cities, verbose=True):
         if num_cities > 1: fold_name = city
         else: fold_name = None #TODO: citywise SHAP requires foldname to be integer
 
@@ -59,7 +59,8 @@ class Predictor():
                                             self.split,
                                             self.target,
                                             kfold=fold_name,
-                                            noise=False)
+                                            noise=False,
+                                            verbose=verbose)
 
 
     def select_model(self):

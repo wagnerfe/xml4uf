@@ -29,7 +29,8 @@ def train_test_split(df,
                     split,
                     target='distance_m',
                     kfold=None,
-                    noise=False):
+                    noise=False,
+                    verbose=True):
     
     if kfold:
         df_train = df.loc[df.city_name!=kfold]
@@ -52,11 +53,12 @@ def train_test_split(df,
         X_train["feature_noise"] = np.random.normal(size=len(df_train))
         X_test["feature_noise"] = np.random.normal(size=len(df_test))
     
-    print('X_train: {}'.format(X_train.shape))
-    print('y_train: {}'.format(y_train.shape))
-    print('X_test: {}'.format(X_test.shape))
-    print('y_test: {}'.format(y_test.shape))
-    print('Train-Split: {} %'.format(round((len(df_train)/len(df)), 2)))
+    if verbose:
+        print('X_train: {}'.format(X_train.shape))
+        print('y_train: {}'.format(y_train.shape))
+        print('X_test: {}'.format(X_test.shape))
+        print('y_test: {}'.format(y_test.shape))
+        print('Train-Split: {} %'.format(round((len(df_train)/len(df)), 2)))
     return {'X_train':X_train,'X_test':X_test,'y_train':y_train,'y_test':y_test,'df_train':df_train,'df_test':df_test}
 
 
