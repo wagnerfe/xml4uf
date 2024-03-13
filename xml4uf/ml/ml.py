@@ -504,7 +504,12 @@ class MlXval():
         else:
             main_metrics = [m+'_folds' for m in main_metrics]
             fold_results = {key: np.round(self.data_sum['all_folds'][key],2) for key in main_metrics}
-            return pd.DataFrame(fold_results)
+            df = pd.DataFrame(fold_results)
+            df['fold'] = [self.city_name+'_'+str(i) for i in range(self.folds)]
+            
+            summary_stats = df[main_metrics].mean().to_dict()
+            summary_stats['fold'] = self.city_name
+            return pd.concat([df,pd.DataFrame(summary_stats,index=[self.folds])])
 
 
     def plot_shap(self):
@@ -529,9 +534,8 @@ class MlXval():
         with open(os.path.join(self.path_out,self.file_name+'.pkl'), 'wb') as f: 
             pickle.dump(self.data_sum, f)
 
-        if self.folds == 'city':
-            df = self._prepare_csv()
-            df.to_csv(os.path.join(self.path_out,self.file_name+'.csv'),index=False)
+        df = self._prepare_csv()
+        df.to_csv(os.path.join(self.path_out,self.file_name+'.csv'),index=False)
 
 
     def ml_training(self):
