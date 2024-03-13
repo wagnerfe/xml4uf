@@ -538,7 +538,7 @@ class MlXval():
             pickle.dump(self.data_sum, f)
 
         df = self._prepare_csv()
-        df.to_csv(os.path.join(self.path_out,self.file_name+'.csv'),index=False)
+        df.to_csv(os.path.join(self.path_out,'summary_csv',self.file_name+'.csv'),index=False)
 
 
     def ml_training(self):
