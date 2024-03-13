@@ -319,13 +319,13 @@ class MlXval():
     def __init__(self = None, 
                 name = None, 
                 run_name = None, 
-                experiment_name = None,
                 path_root = None, 
                 day_hour = None,
                 resolution = None,
-                feature_sample = None, 
+                feature_sample = None, # Warning Depricated
                 bound = None,
                 features = None,
+                feature_experiment = None,
                 causal_order = None,
                 eval_features = None,
                 eval_shap = None,
@@ -345,7 +345,7 @@ class MlXval():
         if type(name) == list: self.city_name = name
         else: self.city_name = [name]
         self.run_name = run_name
-        self.experiment_name = experiment_name
+        self.feature_experiment= feature_experiment
         self.path_root = path_root 
         self.day_hour = day_hour
         self.resolution = resolution
@@ -472,18 +472,18 @@ class MlXval():
             for c in sorted(self.city_name): cities_abbrev += c[0:2]
         else: cities_abbrev = self.city_name[0]
 
-        if self.experiment_name is not None:
-            experiment = self.experiment_name
-        else: experiment = ''
-
-        self.file_name = ('ml_'+experiment+
-                        '_' +cities_abbrev+
-                        '_'+res_name+
-                        '_'+self.model_name+
-                        '_'+self.target[0:3]+
-                        '_sp'+str(self.split))
+        self.file_name = ('ml_'+cities_abbrev+
+                            '_'+res_name+
+                            '_'+self.model_name+
+                            '_'+self.target[0:3]+
+                            '_sp'+str(self.split))
         if self.sample_size: self.file_name = self.file_name +'_ns'+str(self.sample_size)
         elif self.feature_sample: self.file_name = self.file_name +'_nf'+str(self.feature_sample)
+
+        if self.feature_experiment: 
+            feature_name_split = [ft.split('_')[1] for ft in self.features]
+            feature_abbreviated = '_'.join(feature_name_split)        
+            self.file_name = self.file_name +'_ft_'+feature_abbreviated
 
 
     def _prepare_path_out(self):
