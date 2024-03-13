@@ -501,14 +501,17 @@ class MlXval():
                 dict_metrics['city'] = city
                 lst.append(dict_metrics)
             return pd.DataFrame(lst)
+        
         else:
             main_metrics = [m+'_folds' for m in main_metrics]
             fold_results = {key: np.round(self.data_sum['all_folds'][key],2) for key in main_metrics}
             df = pd.DataFrame(fold_results)
-            df['fold'] = [self.city_name+'_'+str(i) for i in range(self.folds)]
+            df['fold'] = ['f_'+str(i) for i in range(self.folds)]
             
             summary_stats = df[main_metrics].mean().to_dict()
-            summary_stats['fold'] = self.city_name
+            summary_stats = {k: round(v, 2) for k, v in summary_stats.items()}
+            summary_stats['fold'] = 'f_mean'
+            
             return pd.concat([df,pd.DataFrame(summary_stats,index=[self.folds])])
 
 
