@@ -319,6 +319,7 @@ class MlXval():
     def __init__(self = None, 
                 name = None, 
                 run_name = None, 
+                experiment_name = None,
                 path_root = None, 
                 day_hour = None,
                 resolution = None,
@@ -344,6 +345,7 @@ class MlXval():
         if type(name) == list: self.city_name = name
         else: self.city_name = [name]
         self.run_name = run_name
+        self.experiment_name = experiment_name
         self.path_root = path_root 
         self.day_hour = day_hour
         self.resolution = resolution
@@ -470,7 +472,12 @@ class MlXval():
             for c in sorted(self.city_name): cities_abbrev += c[0:2]
         else: cities_abbrev = self.city_name[0]
 
-        self.file_name = ('ml_'+cities_abbrev+
+        if self.experiment_name is not None:
+            experiment = self.experiment_name
+        else: experiment = ''
+
+        self.file_name = ('ml_'+experiment+
+                        '_' +cities_abbrev+
                         '_'+res_name+
                         '_'+self.model_name+
                         '_'+self.target[0:3]+
@@ -538,6 +545,7 @@ class MlXval():
             pickle.dump(self.data_sum, f)
 
         df = self._prepare_csv()
+        Path(os.path.join(self.path_out,'summary_csv')).mkdir(parents=True, exist_ok=True)
         df.to_csv(os.path.join(self.path_out,'summary_csv',self.file_name+'.csv'),index=False)
 
 
