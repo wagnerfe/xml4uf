@@ -11,11 +11,11 @@ The code is run on a computing cluster using slurm workload manager and a [pytho
  - `bin` all .yml files defining run parameters
  - `submodules`: all submodules used in the pipeline
  - `xml4uf`: python code for the pipeline
-  - `notebooks`: notebooks containing examples of individual steps:
-		 - `feature_engineering.ipynb` provides an overview of how features are calculated
-		 - `dag_discovery.ipynb` provides an overview of the causal graph discovery
-		 - `ml.ipynb` (TBD) provides an overview of the machine learning pipeline 
-		 - `sample_data.pkl` is an anonymised example data set 
+ - `notebooks`: notebooks containing examples of individual steps:
+     - `feature_engineering.ipynb` provides an overview of how features are calculated
+	 - `dag_discovery.ipynb` provides an overview of the causal graph discovery
+	 - `ml.ipynb` (TBD) provides an overview of the machine learning pipeline 
+	 - `sample_data.pkl` is an anonymised example data set 
 
 
 
