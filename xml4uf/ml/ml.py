@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 import pickle
 import shap
+from copy import copy, deepcopy
 
 from sklearn import model_selection
 from sklearn import metrics
@@ -106,6 +107,9 @@ class Predictor():
         
         shap_values = pd.DataFrame()
         causal_shap_values = pd.DataFrame()
+        explanation_cv = {}
+        explanation_causal_cv = {}
+        self.data['test_index'] = []
         
         r2_model_all = []
         r2_pred_all = []
@@ -142,7 +146,7 @@ class Predictor():
             
             # shaps
             self.get_shap(eval_shap, causal_order)
-            causal_shap_fold, shap_fold = self.postprocess_shap(eval_shap)
+            causal_shap_fold, shap_fold, explanation_causal_cv, explanation_cv = self.postprocess_shap(eval_shap,explanation_causal_cv,explanation_cv,i)
 
             # concate
             df_test_all = pd.concat([df_test_all, df_test], axis=0)
@@ -154,6 +158,7 @@ class Predictor():
             
             shap_values = pd.concat([shap_values, shap_fold], axis=0)
             causal_shap_values = pd.concat([causal_shap_values, causal_shap_fold], axis=0)
+            self.data['test_index'].append(test_idx)
 
             r2_model_all.append(r2_model)
             r2_pred_all.append(r2_pred)
@@ -195,7 +200,7 @@ class Predictor():
         self.selected_params['colsample_bytree'] = np.mean(colsample_bytree_all)
         self.selected_params['colsample_bylevel'] = np.mean(colsample_bylevel_all)
 
-        self.postprocess_df(eval_shap)
+        self.postprocess_df(eval_shap, explanation_causal_cv, explanation_cv, folds)
         
 
     def results(self, city_scaler={}, city=None):
@@ -235,7 +240,6 @@ class Predictor():
 
     def get_shap(self, eval_shap, causal_order):
         if eval_shap is not None:
-            if isinstance(eval_shap, str): eval_shap = [eval_shap]
             if 'tree_shap' in eval_shap: self.tree_shap()
             if 'causal_shap' in eval_shap: self.causal_shap(causal_order)
 
@@ -260,36 +264,51 @@ class Predictor():
                                                                             seed=2)
 
 
-    def postprocess_shap(self, eval_shap):
+    def postprocess_shap(self, eval_shap,explanation_causal_cv,explanation_cv,i):
         causal_shap_fold = None
         shap_fold = None
         
         if eval_shap is not None:
-            if 'causal_shap_test' in self.data.keys():          
+            if 'causal_shap' in eval_shap:          
                 causal_shap_fold = pd.DataFrame(self.data['causal_shap_test'].values, 
                                                 index=self.data['X_test'].index, 
                                                 columns=self.data['X_test'].columns+'_shap')
-            
-            if 'shap_test' in self.data.keys():
+                explanation_causal_cv[i] = self.data['causal_shap_test']
+
+            if 'tree_shap' in eval_shap:
                 shap_fold = pd.DataFrame(self.data['shap_test'].values, 
                                         index=self.data['X_test'].index, 
                                         columns=self.data['X'].columns+'_shap')
+                explanation_cv[i] = self.data['shap_test']
         
-        return causal_shap_fold, shap_fold
- 
-    def postprocess_df(self, eval_shap):
+        return causal_shap_fold, shap_fold, explanation_causal_cv, explanation_cv
+    
+
+    def combine_kfold_explainer(self, explanation_kfold, folds):
+        explanation_sum = deepcopy(explanation_kfold[0]) # init explainer object
+        for j in range(folds):
+            explanation_sum.values = np.array(list(explanation_sum.values)+list(explanation_kfold[j].values))
+            explanation_sum.base_values = np.array(list(explanation_sum.base_values)+list(explanation_kfold[j].base_values))
+            explanation_sum.data = np.array(list(explanation_sum.data)+list(explanation_kfold[j].data))
+        return explanation_sum
+
+
+    def postprocess_df(self, eval_shap, explanation_causal_cv, explanation_cv, folds):
         df_y = pd.concat([self.data['y_test'],self.data['y_predict']],axis=1)
         df_y = df_y.rename(columns={self.target:'y_test',0:'y_predict'})
         df_out = pd.merge(self.data['df_test'], df_y, left_index=True,right_index=True) 
         df_out = pd.merge(df_out,self.data['X_test'],left_index=True,right_index=True)
         
         if eval_shap is not None:
-            if 'df_causal_shap' in self.data.keys():
+            if 'causal_shap' in eval_shap:
                 self.data['df_causal_shap'] = pd.merge(df_out, self.data['df_causal_shap'],left_index=True,right_index=True)
                 self.data.pop('causal_shap_test',None) # remove leftover from kfold 
-            if 'df_shap' in self.data.keys():
+                self.data['explanation_causal_cv'] = self.combine_kfold_explainer(explanation_causal_cv, folds) # combine explainer obj
+
+            if 'tree_shap' in eval_shap:
                 self.data['df_shap'] = pd.merge(df_out, self.data['df_shap'],left_index=True,right_index=True)
                 self.data.pop('shap_test',None) # remove leftover from kfold 
+                self.data['explanation_cv'] = self.combine_kfold_explainer(explanation_cv, folds) # combine explainer obj
         else:
             self.data['df_out'] = df_out
 
@@ -355,7 +374,8 @@ class MlXval():
         self.features = features
         self.causal_order = causal_order
         self.eval_features = eval_features
-        self.eval_shap = eval_shap
+        if type(eval_shap)==list: self.eval_shap = eval_shap
+        else: self.eval_shap = [eval_shap]
         self.track_comet = track_comet
         self.target = target
         self.sample_size = sample_size
@@ -434,15 +454,17 @@ class MlXval():
                 if 'tree_shap' in self.eval_shap:
                     df = self.data_sum['all_folds']['df_shap']
                     self.data_sum[city+'_shap_test'] = df.loc[df['tractid'].str.contains(city)].reset_index(drop=True)
+                    self.data_sum['explanation_cv'] = self.data_sum['all_folds']['explanation_cv']
                 
                 if 'causal_shap' in self.eval_shap:
                     df = self.data_sum['all_folds']['df_causal_shap']
                     self.data_sum[city+'_causal_shap_test'] = df.loc[df['tractid'].str.contains(city)].reset_index(drop=True)
+                    self.data_sum['explanation_causal_cv'] = self.data_sum['all_folds']['explanation_causal_cv']
 
             if 'df_out' in self.data_sum['all_folds'].keys():
                 df = self.data_sum['all_folds']['df_out']
                 self.data_sum[city+'_out'] = df.loc[df['tractid'].str.contains(city)].reset_index(drop=True)
-
+            
             if self.city_scaler: 
                 self.data_sum[city+'_scaler'] = self.city_scaler[city]
 
