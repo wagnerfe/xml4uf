@@ -406,15 +406,6 @@ class MlXval():
 
     def load_data(self): 
         print('Initialising ml run for {}'.format(self.city_name))
-
-        if self.causal_order is not None:
-            flat_causal_order = [item for sublist in self.causal_order for item in sublist]
-            if all([ft in self.features for ft in flat_causal_order]):
-                self.features = [ft for ft in self.features if ft in flat_causal_order]
-                print(f'For causal order: {self.causal_order}, choosing features:')
-                print(self.features)
-            else: raise ValueError(f'Error! Found node in causal order that is not in feature list!')
-
         self.df, self.city_scaler = utils_ml.load_cities_sample(city_names = self.city_name, 
                                                                 target = self.target, 
                                                                 path_root = self.path_root, 
@@ -464,7 +455,7 @@ class MlXval():
             if 'df_out' in self.data_sum['all_folds'].keys():
                 df = self.data_sum['all_folds']['df_out']
                 self.data_sum[city+'_out'] = df.loc[df['tractid'].str.contains(city)].reset_index(drop=True)
-            
+
             if self.city_scaler: 
                 self.data_sum[city+'_scaler'] = self.city_scaler[city]
 
