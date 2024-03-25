@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import glob
 
 import utils.utils as utils
-import utils.plotting as plotting
+import postprocessing.plotting as plotting
 
 
 def init_link_assumptions(N):

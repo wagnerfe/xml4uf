@@ -51,6 +51,80 @@ DEFAULT_FEATURES = ['ft_dist_cbd',
 DEFAULT_CITIES = ['ber','bos','lax','sfo','rio','bog']
 
 
+FEATURE_NAMES = {'distance_m':'VKT',
+                'ft_dist_cbd':'Distance to Center',
+                'ft_dist_cbd4':'Distance to Center',
+                'ft_employment_access_2':'Distance to 20% Employment',
+                'ft_employment_access_1':'Distance to 10% Employment',
+                'ft_employment_access_01':'Distance to Employment',
+                'ft_employment_access_05':'Distance to 5% Employment',
+                'ft_income':'Income',
+                'ft_income_groups':'Income',
+                'ft_income_groups3':'Income',
+                'ft_beta':'Street Connectivity',
+                'ft_dist_airport':'Airport Access',
+                'ft_pop_dense_meta':'Population Density',
+                'ft_pop_dense':'Population Density',
+                'ft_job_dense': 'Job Density',
+                'ft_trips_capita_pop_dense_meta':'Trips per Capita',
+                'score_spatiotemporal': 'Transit Access',
+                'ft_lu_entropy_normed': 'Land Use Diversity',
+                'ft_lu_entropy_classic': 'Land Use Diversity (classic)'
+                }           
+        
+UNITS = {'distance_m':'[km]',
+            'ft_dist_cbd':'[km]',
+            'ft_dist_cbd4':'[km]',
+            'ft_employment_access_2':'[km]',
+            'ft_employment_access_1':'[km]',
+            'ft_employment_access_01':'[km]',
+            'ft_employment_access_05':'[km]',
+            'ft_income':' ',
+            'ft_income_groups':' ',
+            'ft_income_groups3':' ',
+            'ft_beta':r"[n/km$^2$]",
+            'ft_dist_airport':'[km]',
+            'ft_pop_dense_meta':r"[n/km$^2$]",
+            'ft_pop_dense':r"[n/km$^2$]",
+            'ft_job_dense': ' ',
+            'ft_trips_capita_pop_dense_meta_orig':' ',
+            'score_spatiotemporal':' ',
+            'ft_lu_entropy_normed':' ',
+            'ft_lu_entropy_classic':' '
+            }
+
+CITY_NAMES = {'ber':'Berlin',
+              'bos':'Boston',
+              'lax':'Los Angeles',
+              'sfo':'Bay Area',
+              'rio':'Rio de Janeiro',
+              'bog':'Bogota'}
+
+CITY_UCI = {'ber': 0.378,
+            'bos':0.322,
+            'lax':0.207,
+            'sfo':0.249,
+            'rio':.256,
+            'bog':0.225,}
+
+CITY_AREAS = {'ber': 6548.52,
+            'bos': 3673.49,
+            'lax': 6374.78,
+            'sfo': 8220.82,
+            'rio': 6256.23,
+            'bog': 459.94}
+
+CO2FACTORS = {'ber':164.33, # in gCO2eq/km
+            'bos':199.07,
+            'lax':199.07,
+            'sfo':199.07,
+            'rio': 170.68,
+            'bog': 170.68,
+            }
+
+
+
+
 def load_config():
     with open(os.path.join(PROJECT_SRC_PATH.rsplit('/',1)[0],'bin','env_config.yml'), 'r') as stream:
         config_file = yaml.safe_load(stream)
