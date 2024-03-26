@@ -75,13 +75,28 @@ class ShapFigures():
 
         for city in self.cities:        
             gdf = self.geoms[city+'_'+shap_type]
-            for col in gdf.columns:
-                if 'shap' in col:
-                    _,ax = plt.subplots(1,1,figsize=(20,10))
-                    gdf.plot(ax=ax, column=col, cmap=self.shap_cmap, legend =False)
-                    ax.axis('off')
-                    ax.set_title(f"{CITY_NAMES[city]}",fontsize=self.fontsize)
-                    self.save_plot_figure(figname,city,col)
+            
+            vmax = max(gdf[[col+'_co2' for col in self.features]].max())
+            vmin = min(gdf[[col+'_co2' for col in self.features]].min())
+            divnorm=colors.TwoSlopeNorm(vmin=-vmax, vcenter=0., vmax=vmax)
+            
+            fig,axs = plt.subplots(ncols = 2, nrows=int(len(self.features)/2), figsize=(10,6))
+            for col, ax in zip(self.features, axs.ravel()):
+                gdf.exterior.plot(ax=ax,color='black',alpha=0.8, linewidth=0.1)
+                gdf.plot(ax=ax,
+                        column=col+'_co2',
+                        legend=True,
+                        vmin=vmin,
+                        vmax=vmax,
+                        cmap='coolwarm',
+                        norm = divnorm,
+                        legend_kwds={'shrink':0.3,
+                                     'label':r'kgCO$_2$ / Trip'})
+                
+                ax.axis('off')
+                ax.set_title(f"{FEATURE_NAMES[col]}",fontsize=self.labelsize)
+            plt.suptitle(f"{CITY_NAMES[city]}: {figname}",fontsize=self.fontsize)
+            self.save_plot_figure(figname,city)
 
 
     def map_w_ft_map(self, shap_type):
@@ -99,7 +114,7 @@ class ShapFigures():
                     
                     ax[0].axis('off')
                     ax[1].axis('off')
-                    plt.subtitle(f"{CITY_NAMES[city]}: {col[:-5]}, {figname}",fontsize=self.fontsize)
+                    plt.suptitle(f"{CITY_NAMES[city]}: {col[:-5]}, {figname}",fontsize=self.fontsize)
                     self.save_plot_figure(figname,city,col)
 
 
@@ -453,8 +468,8 @@ class PlotManager():
         self.figname = ['A','B','C','D']
         
         # fontsizes
-        self.fontsize = 18
-        self.labelsize = self.fontsize-8
+        self.fontsize = 15
+        self.labelsize = self.fontsize-4
 
         # coloring
         self.palette = ['#66c2a5', # TODO only works for 4 features - adjust
@@ -555,6 +570,10 @@ class PlotManager():
             
                 df_out = pd.merge(df.reset_index(drop=True),df_shap.reset_index(drop=True), left_index=True, right_index=True)
                 gdf_out = pd.merge(gdf, df_out, on = 'tractid')
+
+                # also add co2 values to gdf_out
+                for ft in self.features:
+                    gdf_out[ft+'_co2'] = gdf_out[ft+'_shap']*CO2FACTORS[city]/1000 #kgCO2eq/km
                 
                 self.validate_sample_size(df,gdf_out)
                 geoms[city+'_'+shap_type] = gdf_out
