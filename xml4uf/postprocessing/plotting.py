@@ -284,6 +284,40 @@ class ShapFigures():
             self.save_plot_figure(figname,city)
 
 
+    def city_bars(self, shap_type, legend_kwargs):
+        figname = self.run_id+'_city_bars'
+
+        def prep_bar_plot(data,city,shap_type):
+            explanation_causal = data[city][shap_type]
+            df_shap_vals = pd.DataFrame(explanation_causal.values)
+            df_shap_vals.columns = [ft for ft in explanation_causal.feature_names]
+            df_shap = pd.DataFrame(abs(df_shap_vals).mean(),columns=['Average feature effect [km]'])
+            df_shap = df_shap.reset_index().rename(columns={'index':'Feature'})
+            return df_shap
+        
+        df_out = pd.DataFrame()
+        for city in self.cities:
+            df_tmp = prep_bar_plot(self.data, city, shap_type)
+            df_tmp['Relative Feature Effect [%]'] = df_tmp['Average feature effect [km]']/df_tmp['Average feature effect [km]'].sum()
+            df_tmp['city'] = CITY_NAMES[city]
+            df_out = pd.concat([df_out, df_tmp])
+
+        fig,ax = plt.subplots(1,figsize=(8,5))
+        sns.barplot(ax=ax,
+                    data=df_out,
+                    y='Relative Feature Effect [%]',
+                    x='Feature',
+                    hue='city',
+                    palette=sns.color_palette([self.city_colors[c] for c in self.cities]))
+        
+        #ax.get_legend().set_visible(False)
+        ax.set_title(f'Relative feature importance, {figname}')
+        ax.spines[['top','right']].set_visible(False)
+        #fig.legend(handles = legend_kwargs['handles'], labels = legend_kwargs['labels'], loc='center', ncol=6, bbox_to_anchor=(0.6,-0.05))
+        
+        self.save_plot_figure(figname)
+
+
     def bars(self, shap_type):
         figname = self.run_id+'_bars'
 
@@ -581,6 +615,8 @@ class PlotManager():
         if fig=='individual_scatter': sf.individual_scatter(shap_type,
                                                             self.scatter_kwargs)
         if fig=='beeswarm': sf.beeswarm(shap_type)            
+        if fig == 'city_bars': sf.city_bars(shap_type,
+                                            self.legend_kwargs)
         if fig=='bars': sf.bars(shap_type)
         #if fig=='shap_comparison': sf.shap_comparison(shap_type)
 
