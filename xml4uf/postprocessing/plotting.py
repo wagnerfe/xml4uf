@@ -97,93 +97,7 @@ class ShapFigures():
                 ax.set_title(f"{FEATURE_NAMES[col]}",fontsize=self.labelsize)
             plt.suptitle(f"{CITY_NAMES[city]}: {figname}",fontsize=self.fontsize)
             self.save_plot_figure(figname,city)
-
-
-    def map_w_ft_map(self, shap_type):
-        figname= self.run_id+'_map_w_ft'
-
-        for city in self.cities:
-            gdf = self.geoms[city+'_'+shap_type]
-            for col in gdf.columns:
-                if 'shap' in col:
-                    _,ax = plt.subplots(1,2,figsize=(20,10))
-                    
-                    divnorm_ft=colors.TwoSlopeNorm(vmin=min(gdf[col[:-5]]), vcenter=gdf[col[:-5]].mean(), vmax=max(gdf[col[:-5]]))
-                    gdf.plot(ax=ax[0], column=col, cmap=self.shap_cmap, legend =True, legend_kwds={'shrink': 0.3})
-                    gdf.plot(ax=ax[1], column=col[:-5], cmap='coolwarm',norm=divnorm_ft, legend =True, legend_kwds={'shrink': 0.3})
-                    
-                    ax[0].axis('off')
-                    ax[1].axis('off')
-                    plt.suptitle(f"{CITY_NAMES[city]}: {col[:-5]}, {figname}",fontsize=self.fontsize)
-                    self.save_plot_figure(figname,city,col)
-
-
-    def map_w_scatter(self, shap_type):
-        figname= self.run_id+'_map_w_scatter'
         
-        for city in self.cities:
-            gdf = self.geoms[city+'_'+shap_type]
-            explanation_causal = self.data[city][shap_type]
-            for col in gdf.columns:
-                if 'shap' in col:
-                    _,ax = plt.subplots(1,2,figsize=(20,10))
-                    #divnorm=colors.TwoSlopeNorm(vmin=min(gdf[col]), vcenter=0., vmax=max(gdf[col]))
-                    #divnorm=colors.TwoSlopeNorm(vmin=min(gdf[col[:-5]]), vcenter=0., vmax=max(gdf[col[:-5]]))
-                    #gdf.plot(ax=ax[0], column=col, cmap='PiYG',norm=divnorm, legend =True)
-                    gdf.plot(ax=ax[0], column=col, cmap=self.shap_cmap, legend =True, legend_kwds={'shrink': 0.3})
-                    #shap.plots.scatter(explanation_causal[:,col[0:-5]],color=explanation_causal[:,col[0:-5]],ax = ax[1], show=False, cmap="PiYG")
-                    shap.plots.scatter(explanation_causal[:,col[0:-5]],ax = ax[1], show=False)
-
-                    ax[0].axis('off')
-                    ax[0].set_title(f"{CITY_NAMES[city]}: {col[:-5]}, {figname}",fontsize=self.fontsize)
-                    
-                    self.save_plot_figure(figname,city,col)
-        
-
-    # def city_scatter(self, shap_type, fit_line=True):   
-    #     figname= self.run_id+'_city_scatter'
-        
-    #     cc, labels, handles = get_plot_args(self.cities, palett='muted')
-    #     #panelname = ['A','B','C','D']
-    #     i=0
-        
-    #     fig,axs = plt.subplots(ncols = 2, nrows=2, figsize=(18,12))
-    #     for col, ax in zip(self.features, axs.ravel()):
-                
-    #             scatter_kws = {'alpha':1.0, 's':10}
-    #             line_kws = {'alpha':1.0}
-    #             for city in self.cities:
-                    
-    #                 explanation_causal = self.data[city][shap_type].sample(200)
-    #                 vals = [ft[i] for ft in explanation_causal.values]
-    #                 dat = [d[i] for d in explanation_causal.data]
-                    
-    #                 if fit_line:
-    #                     scatter_kws['alpha'] = 0.2    
-    #                     sns.regplot(x=dat, y=vals,lowess=True, ax=ax, scatter_kws = scatter_kws, line_kws = line_kws, color = cc[CITY_NAMES[city]])
-    #                 else:
-    #                     sns.regplot(x=dat, y=vals, fit_reg=False, ax=ax, scatter_kws = scatter_kws, color = cc[CITY_NAMES[city]], label=f"{CITY_NAMES[city]}")
-    #                     scatter_kws['alpha'] -= 0.1
-                    
-
-    #             # titles, labels, legends
-    #             plt.title(f'Scatter Plot: {FEATURE_NAMES[col]},{figname}',fontsize=self.fontsize)
-    #             plt.legend(fontsize=25)
-    #             plt.xticks(fontsize=20)
-    #             plt.yticks(fontsize=20)
-                
-    #             ax.set_xlabel(f"{FEATURE_NAMES[col]} [{UNITS[col]}]", fontsize=15)
-    #             ax.set_ylabel(f"Causal Shapley Value [km]", fontsize=20)
-    #             ax.spines['top'].set_visible(False)
-    #             ax.spines['right'].set_visible(False)
-    #             # if col == 'ft_pop_dense_meta':
-    #             #     ax.set_xlim(-1000,25*1e3)
-
-    #             i+=1
-    #             plt.tight_layout() 
-        
-    #     fig.legend(handles = handles, labels = labels, loc='lower center', ncol=6, bbox_to_anchor=(0.5,-0.05))               
-    #     self.save_plot_figure(figname)
 
     def get_smooth_xy(self,
         x,
@@ -339,32 +253,34 @@ class ShapFigures():
 
 
     
-    def city_individual_scatter(self, shap_type):   
+    def individual_scatter(self, shap_type, scatter_kwargs):   
         figname = self.run_id+'_scatter'
-        first_key = list(self.cities)[0] # TODO
         
         for city in self.cities:
-
-            fig,ax = plt.subplots(2,2,figsize=(15,10))
-            j,k = 0,0
-            for i,col in enumerate(self.features):
-                scatter_kws = {'alpha':1}
-                color = COLORS[CITY_NAMES[city]]
+            fig,axs = plt.subplots(ncols = 2, nrows=int(len(self.features)/2), figsize=(10,6))
+            for col, ax in zip(self.features, axs.ravel()):                
+                feature_index = self.features.index(col)
+                explanation = self.data[city][shap_type].sample(int(len(self.data[city][shap_type].values)*0.5))
+                vals = explanation.values[:,feature_index]*CO2FACTORS[city]/1000
+                dat = explanation.data[:,feature_index]
                 
-                explanation_causal = self.data[city][shap_type].sample(200)
-                vals = [ft[i] for ft in explanation_causal.values]
-                dat = [d[i] for d in explanation_causal.data]
-                sns.regplot(x=dat, y=vals, fit_reg=False, ax=ax[j,k], scatter_kws = scatter_kws, color = color, label=f"{CITY_NAMES[city]}")
+                sns.regplot(x=dat,
+                            y=vals,
+                            fit_reg=False,
+                            ax=ax,
+                            scatter_kws = {'alpha':1,
+                                            'marker':scatter_kwargs['marker'], 
+                                            's':scatter_kwargs['s']},
+                            color = self.city_colors[city],
+                            label=f"{CITY_NAMES[city]}")
                 
-                # titles, labels, legends
-                ax[j,k].set_xlabel(f"{FEATURE_NAMES[col]} [{UNITS[col]}]")
-                ax[j,k].set_ylabel(f"Shapley Value [km]")
+                # ax
+                ax.spines[['top','right']].set_visible(False)
+                ax.set_xlabel(f"{FEATURE_NAMES[col]}", fontsize = self.labelsize)
+                ax.set_ylabel(f"Feature effect [kgCO$_2$/Trip]",fontsize = self.labelsize)
+                ax.set_ylim(scatter_kwargs['ymin'],scatter_kwargs['ymax'])
 
-                k += 1
-                if k>1: 
-                    k-=2
-                    j=1
-            fig.tight_layout()
+            plt.suptitle(f'{CITY_NAMES[city]},{figname}',fontsize=self.fontsize)
             self.save_plot_figure(figname,city)
 
 
@@ -381,6 +297,20 @@ class ShapFigures():
                             color = self.city_colors[city],
                             plot_type="bar")
             plt.locator_params(nbins=4)
+            ax.set_title(f"{CITY_NAMES[city]}, {figname}")
+        
+        self.save_plot_figure(figname, city)
+
+
+    def beeswarm(self, shap_type):         
+        figname= self.run_id+'_beeswarm'
+        
+        fig,axs = plt.subplots(ncols = 2, nrows=3,figsize=(13,10))
+        for city, ax in zip(self.cities, axs.ravel()):
+            explanation = self.data[city][shap_type]
+            plt.sca(ax)
+            shap.summary_plot(explanation, show =False, plot_size=None,plot_type="dot")
+
             ax.set_title(f"{CITY_NAMES[city]}, {figname}")
         
         self.save_plot_figure(figname, city)
@@ -409,19 +339,23 @@ class ShapFigures():
     #             if not self.save_plot_figure: plt.show()
 
 
-    def beeswarm(self, shap_type):         
-        figname= self.run_id+'_beeswarm'
-        
-        fig,axs = plt.subplots(ncols = 2, nrows=3,figsize=(13,10))
-        for city, ax in zip(self.cities, axs.ravel()):
-            explanation = self.data[city][shap_type]
-            plt.sca(ax)
-            shap.summary_plot(explanation, show =False, plot_size=None,plot_type="dot")
+    # def map_w_ft_map(self, shap_type):
+    #     figname= self.run_id+'_map_w_ft'
 
-            ax.set_title(f"{CITY_NAMES[city]}, {figname}")
-        
-        self.save_plot_figure(figname, city)
-
+    #     for city in self.cities:
+    #         gdf = self.geoms[city+'_'+shap_type]
+    #         for col in gdf.columns:
+    #             if 'shap' in col:
+    #                 _,ax = plt.subplots(1,2,figsize=(20,10))
+                    
+    #                 divnorm_ft=colors.TwoSlopeNorm(vmin=min(gdf[col[:-5]]), vcenter=gdf[col[:-5]].mean(), vmax=max(gdf[col[:-5]]))
+    #                 gdf.plot(ax=ax[0], column=col, cmap=self.shap_cmap, legend =True, legend_kwds={'shrink': 0.3})
+    #                 gdf.plot(ax=ax[1], column=col[:-5], cmap='coolwarm',norm=divnorm_ft, legend =True, legend_kwds={'shrink': 0.3})
+                    
+    #                 ax[0].axis('off')
+    #                 ax[1].axis('off')
+    #                 plt.suptitle(f"{CITY_NAMES[city]}: {col[:-5]}, {figname}",fontsize=self.fontsize)
+    #                 self.save_plot_figure(figname,city,col)   
 
 
     def save_plot_figure(self,name, city=None, col=None):
@@ -432,6 +366,7 @@ class ShapFigures():
             name = name + '.png'
             plt.savefig(os.path.join(self.path_out,name),bbox_inches='tight',dpi=300)
         else:
+            plt.tight_layout
             plt.show()
 
 
@@ -486,24 +421,10 @@ class PlotManager():
                                 'alpha': 0.2,
                                 's': 10,
                                 'marker': '.',
+                                'ymin':-0.5,
+                                'ymax':2.3,
                                 }
         self.plot_kwargs = {'linewidth': 2}
-
-
-    # def get_plot_args(self,palette=None):    
-    #     labels = [CITY_NAMES[city] for city in self.cities]
-    #     handles = []
-
-    #     if palette is None:
-    #         palette = self.default_palette
-        
-    #     colors = sns.color_palette(palette,n_colors=len(self.cities))
-    #     cc = {}
-    #     for i,city in enumerate(labels):
-    #         patch = mpatches.Circle((0,0),1,color=colors[i], label=city)
-    #         handles.append(patch)
-    #         cc[city] = colors[i]
-    #     return  cc, labels, handles
 
 
     def adjust_units(self,data):
@@ -652,22 +573,16 @@ class PlotManager():
 
     def plotting(self,sf,fig, shap_type):
         if fig=='map': sf.map(shap_type)
-        if fig=='map_w_scatter': sf.map_w_scatter(shap_type)
-        if fig=='map_w_ft_map': sf.map_w_ft_map(shap_type)
         if fig=='city_scatter': sf.city_scatter(shap_type,
                                             self.title,
                                             self.scatter_kwargs,
                                             self.plot_kwargs,
                                             self.legend_kwargs)
-        if fig=='individual_scatter': sf.individual_scatter(shap_type)
+        if fig=='individual_scatter': sf.individual_scatter(shap_type,
+                                                            self.scatter_kwargs)
         if fig=='beeswarm': sf.beeswarm(shap_type)            
-        #if fig=='shap_comparison': sf.shap_comparison(shap_type)
         if fig=='bars': sf.bars(shap_type)
-        # else: 
-        #     if 'map' in self.figures: self.map(save_fig=save_fig)
-        #     if 'map_w_ft_map' in self.figures: self.map_w_ft_map(save_fig=save_fig)
-        #     if 'beeswarm' in self.figures: self.beeswarm_legacy(save_fig=save_fig)
-        #     if 'bars' in self.figures: self.shap_bars(save_fig=save_fig)
+        #if fig=='shap_comparison': sf.shap_comparison(shap_type)
 
 
     def create(self,mounted):
@@ -688,7 +603,6 @@ class PlotManager():
         for shap_type in self.shap_type:
             # run_id contains abbreviated shap and fold type for file storage
             sf.run_id = RUN_MAP[shap_type]
-            
             for fig in self.figures:
                 self.plotting(sf, fig, shap_type)
 
