@@ -25,12 +25,12 @@ import utils.utils_ml as utils_ml
 from utils.utils import FEATURE_NAMES, CITY_NAMES, UNITS, CO2FACTORS, CITY_AREAS, CITY_UCI
 
 
-COLORS = {'ber':'black',
-        'bos':'red',
+COLORS = {'ber':'blue',
+        'bos':'orange',
         'lax':'brown',
-        'sfo':'orange',
-        'rio':'blue',
-        'bog':'green'}
+        'sfo':'red',
+        'rio':'green',
+        'bog':'purple'}
 
 RUN_MAP = {'shap_test': 'shap_ckf', # tree shap,  city kfold
             'causal_shap_test':'cshap_ckf', # causal shap, city kfold
@@ -245,7 +245,7 @@ class ShapFigures():
         return smooth_x, smooth_y
     
     def remove_x_perc(self,dat):
-        two_perc = len(dat)-int(0.998*len(dat))
+        two_perc = len(dat)-int(0.99*len(dat))
         idx_bot = np.argsort(dat)[:two_perc]
         idx_top = np.argpartition(dat, -two_perc)[-two_perc:]
         idx_remove = np.append(idx_bot,idx_top)
@@ -272,7 +272,7 @@ class ShapFigures():
             max_x = 0
             feature_index = self.features.index(col)
             for city in self.cities:
-                vals = self.data[city][shap_type].values[:,feature_index]*CO2FACTORS[city]
+                vals = self.data[city][shap_type].values[:,feature_index]*CO2FACTORS[city]/1000
                 dat = self.data[city][shap_type].data[:,feature_index]
 
                 if cut_line: mask_cut = self.remove_x_perc(dat)
@@ -287,14 +287,13 @@ class ShapFigures():
                 ax.scatter(dat[idx], vals[idx], color=legend_kwargs['colors'][CITY_NAMES[city]], **scatter_kwargs)
                 ax.plot(smooth_x, smooth_y, color=legend_kwargs['colors'][CITY_NAMES[city]], label=CITY_NAMES[city], **plot_kwargs)
                 
-                if max(dat)>max_x:
-                    max_x = max(dat)
+                if max(dat)>max_x: max_x = max(dat)
 
             # ax visuals
             ax.hlines(y=0, xmin=0, xmax=max_x, color='gray', linestyle='dashed', linewidth=1) 
             ax.tick_params(axis='both', which='major', labelsize=self.labelsize, colors='gray')
             ax.set_xlabel(fr"{FEATURE_NAMES[col]} {UNITS[col]}",fontsize=self.labelsize)
-            ax.set_ylabel(fr"Feature effect [gCO$_2$/Trip]", fontsize=self.labelsize)
+            ax.set_ylabel(fr"Feature effect [kgCO$_2$/Trip]", fontsize=self.labelsize)
             ax.set_facecolor('white')
             ax.spines[['top','right']].set_visible(False)
             ax.spines[['left','bottom']].set_visible(True)
@@ -303,9 +302,9 @@ class ShapFigures():
             ax.tick_params(axis='y', colors='black')
             
             # ax lims
-            #if col == 'ft_pop_dense': ax.set_xlim(-1000,30*1e3)    
-            if col == 'ft_beta': ax.set_xlim(-10,600)    
-            ax.set_ylim(-400,2000)
+            if col == 'ft_pop_dense': ax.set_xlim(-1000,30*1e3)    
+            if col == 'ft_beta': ax.set_xlim(-10,300)    
+            ax.set_ylim(-0.5,2.3)
             
             i+=1
             plt.tight_layout() 
@@ -469,9 +468,9 @@ class PlotManager():
         # scatter kwargs
         self.scatter_kwargs = {'method': 'localreg', # 'gp', 'polynomial','binning'
                                 'cut_line':True,
-                                'alpha': 0.5,
-                                's': 1,
-                                'marker': 'o',
+                                'alpha': 0.2,
+                                's': 10,
+                                'marker': '.',
                                 }
         self.plot_kwargs = {'linewidth': 2}
 
@@ -503,7 +502,7 @@ class PlotManager():
                             exp.data[i][ft_index] = elem[ft_index]/1000
                     elif ft in ['ft_pop_dense_meta','ft_pop_dense']:
                         for i, elem in enumerate(exp.data):
-                            exp.data[i][ft_index] = elem[ft_index]*1e6
+                            exp.data[i][ft_index] = elem[ft_index]
                 # assign to city
                 data[city][shap_type] = exp
         return data
@@ -568,6 +567,7 @@ class PlotManager():
             city_stats = {}
             city_stats['centrality'] = CITY_UCI[city]
             city_stats['area'] = CITY_AREAS[city]
+            city_stats['co2'] = np.mean(self.data[city]['df_rescaled'].y_test/1000*CO2FACTORS[city])/1000
             city_stats['r2'] = np.round(self.data[city]['r2_pred'],2)
             self.stats[city] = city_stats
 
@@ -576,7 +576,7 @@ class PlotManager():
         
         def get_label(city, city_stats):
             city_name = CITY_NAMES[city].replace(" ", "\ ")
-            return ("$\mathbf{" + city_name + f"}}\ $"+f"\nR2: {city_stats[city]['r2']:.2f}\nUCI: {city_stats[city]['centrality']:.2f}")
+            return ("$\mathbf{" + city_name + f"}}\ $"+"\n"+r"$\overline{CO}$$_2$"+f": {city_stats[city]['co2']:.2f}\nUCI: {city_stats[city]['centrality']:.2f}")
 
         self.get_city_stats()
         labels = [get_label(city,self.stats) for city in self.cities]
@@ -595,6 +595,14 @@ class PlotManager():
         return self.data[first_key]['X_train'].columns.tolist()
 
 
+    def get_cities_ordered(self):
+        cities = self.data.keys()
+        # get uci vals for cities as subcet (to handle also less than all cities)
+        city_uci_tmp = {x: CITY_UCI[x] for x in CITY_UCI.keys() if x in cities}
+        # sorts based on uci ascending order
+        return sorted(city_uci_tmp, key=city_uci_tmp.get,reverse=True)
+        
+
     def initialize(self, mounted):
         # check if run locally
         if (self.data is None) & (mounted):
@@ -611,7 +619,7 @@ class PlotManager():
         self.data = self.adjust_units(self.data)
 
         # get city and feature names
-        self.cities = self.data.keys()
+        self.cities = self.get_cities_ordered()
         self.features = self.get_feature_names()
         self.rename_fts_in_shap()
 
