@@ -25,7 +25,7 @@ sys.path.append(CAUSAL_SHAP_PATH)
 import utils.utils as utils
 import utils.utils_ml as utils_ml
 import utils.utils_causal as utils_causal
-import utils.plotting as plotting
+import postprocessing.plotting as plotting
 import causal_shap.explainer as causal_shap
 
 
@@ -540,13 +540,15 @@ class MlXval():
         if shap_types:
             for shap_type in shap_types:
                 print(f'Plotting shap for {shap_type}')
-                plotter = plotting.ShapMaps(self.data_sum,
-                                            shap_type,
-                                            self.path_root,
-                                            self.run_name,
-                                            self.figures)
-                plotter.initialize_shap()    
-                plotter.plot_figures(save_fig=True)
+                pm = plotting.PlotManager(self.run_name,
+                                        self.path_root,
+                                        self.data_sum,
+                                        self.figures,
+                                        shap_type,
+                                        self.run_name,
+                                        save_fig = True)
+                pm.create()    
+                
         else: print('No figures created as no shap vals could be found...')
 
 
