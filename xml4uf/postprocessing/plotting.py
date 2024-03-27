@@ -99,7 +99,7 @@ class ShapFigures():
             self.save_plot_figure(figname,city)
         
 
-    def get_smooth_xy(self,
+    def _get_smooth_xy(self,
         x,
         y,
         n_points=500,
@@ -172,13 +172,17 @@ class ShapFigures():
             raise NotImplementedError
 
         return smooth_x, smooth_y
-    
-    def remove_x_perc(self,dat):
-        two_perc = len(dat)-int(0.99*len(dat))
-        idx_bot = np.argsort(dat)[:two_perc]
-        idx_top = np.argpartition(dat, -two_perc)[-two_perc:]
-        idx_remove = np.append(idx_bot,idx_top)
-        return ~np.isin(np.arange(len(dat)),idx_remove)
+
+
+    def _remove_x_perc(self,dat, cut_line):
+        if cut_line:
+            two_perc = len(dat)-int(0.99*len(dat))
+            idx_bot = np.argsort(dat)[:two_perc]
+            idx_top = np.argpartition(dat, -two_perc)[-two_perc:]
+            idx_remove = np.append(idx_bot,idx_top)
+            return ~np.isin(np.arange(len(dat)),idx_remove)
+        else:
+            return slice(None)
 
 
     def city_scatter(self,
@@ -204,10 +208,9 @@ class ShapFigures():
                 vals = self.data[city][shap_type].values[:,feature_index]*CO2FACTORS[city]/1000
                 dat = self.data[city][shap_type].data[:,feature_index]
 
-                if cut_line: mask_cut = self.remove_x_perc(dat)
-                else: mask_cut = slice(None)
+                mask_cut = self._remove_x_perc(dat,cut_line)
 
-                smooth_x, smooth_y = self.get_smooth_xy(dat[mask_cut],
+                smooth_x, smooth_y = self._get_smooth_xy(dat[mask_cut],
                                                 vals[mask_cut],
                                                 method=method,
                                                 lengthscale=max(dat[mask_cut])*3)
@@ -250,7 +253,6 @@ class ShapFigures():
         fig.legend(handles = legend_kwargs['handles'], labels = legend_kwargs['labels'], loc='lower center', ncol=6, bbox_to_anchor=(0.5,-0.11),facecolor='white')
         fig.suptitle(title,y=1.02)
         self.save_plot_figure(figname)
-
 
     
     def individual_scatter(self, shap_type, scatter_kwargs):   
@@ -315,6 +317,111 @@ class ShapFigures():
         ax.spines[['top','right']].set_visible(False)
         #fig.legend(handles = legend_kwargs['handles'], labels = legend_kwargs['labels'], loc='center', ncol=6, bbox_to_anchor=(0.6,-0.05))
         
+        self.save_plot_figure(figname)
+
+
+    def _2ft_scatter(self, shap_type, city, fts, axi, scatter_kwargs,plot_kwargs,method, cut_line):
+        # val_max = 0
+        # val_min = 0
+        c = {fts[0]:'#66c2a5',
+            fts[1]: '#fc8d62',}
+
+        for col in fts:
+            explanation = self.data[city][shap_type]
+            vals = explanation.values[:,self.features.index(col)]*CO2FACTORS[city]/1000    
+            dat = explanation.data[:,self.features.index(fts[0])] # we always plot against 1st ft of fts
+            
+            mask_cut = self._remove_x_perc(dat, cut_line)
+            smooth_x, smooth_y = self._get_smooth_xy(dat[mask_cut],
+                                            vals[mask_cut],
+                                            method=method,
+                                            lengthscale=max(dat[mask_cut])*3)
+
+            axi.scatter(dat, vals, **scatter_kwargs, color=c[col])
+            axi.plot(smooth_x, smooth_y, label=CITY_NAMES[city], **plot_kwargs, color=c[col])
+
+            # if vals.max()>val_max:
+            #     val_max = vals.max()
+
+            # if vals.min()<val_min:
+            #     val_min = vals.min()
+
+        axi.spines[['top','right']].set_visible(False)
+        axi.set_xlabel(fr"{FEATURE_NAMES[fts[0]]} [km]", fontsize=self.labelsize)
+        axi.set_ylabel(fr"[kgCO$_2$/Trip]", fontsize=self.labelsize)
+
+
+    def _get_min_max_shap_cbd_density(self, shap_type, city, fts):
+        print(f'finding min max shap for {city}')
+        gdf = self.geoms[city+'_'+shap_type] 
+        fts_tmp = [ft+'_shap' for ft in fts]
+
+        gdf['min_shap_ft_index'] = gdf[fts_tmp].idxmin(axis=1)
+        gdf['max_shap_ft_index'] = gdf[fts_tmp].idxmax(axis=1)
+        gdf['min_shap_ft'] = gdf[fts_tmp].min(axis=1)
+        gdf['max_shap_ft'] = gdf[fts_tmp].max(axis=1)
+        gdf['shap_pos'] = (gdf[fts_tmp]>=0).any(axis=1)
+        gdf['shap_neg'] = (gdf[fts_tmp]<0).any(axis=1)
+
+        # clean column names
+        gdf['max_shap_ft_index'] = gdf['max_shap_ft_index'].str.replace('_shap', '')
+        gdf['min_shap_ft_index'] = gdf['min_shap_ft_index'].str.replace('_shap', '')
+        return gdf.replace({'max_shap_ft_index':FEATURE_NAMES,'min_shap_ft_index':FEATURE_NAMES }) 
+
+        
+
+
+    def _map(self,shap_type, city, fts, axj, mean_dist):
+        cmap = matplotlib.colors.ListedColormap(['#66c2a5','#fc8d62'])
+        gdf = self._get_min_max_shap_cbd_density(shap_type,city,fts)
+        gdf_in = gdf.loc[gdf.y_test>=mean_dist]
+        #gdf_buff2 = gdf_buff.copy(deep=True)
+
+        # plot
+        self.geoms[city+'_'+shap_type].plot(ax=axj, color='white', alpha=0.6)
+        gdf.plot(ax=axj, facecolor = 'none',hatch="//", edgecolor='lightgray', linewidth=0.01)
+        gdf_in.plot(ax=axj,column='max_shap_ft_index', cmap=cmap,legend=False)
+        #gdf_buff.plot(ax=axj,marker="*",markersize=90,color='gray')
+
+
+        # formatting
+        axj.set_axis_off()
+        axj.set_title(CITY_NAMES[city])
+
+
+    def map_scatter_corridors(self, 
+                            shap_type,
+                            scatter_kwargs,
+                            plot_kwargs,
+                            ft0='ft_dist_cbd',
+                            ft1='ft_pop_dense',
+                            ):
+        figname = self.run_id + '_corridors'
+        method = scatter_kwargs.pop('method')
+        cut_line = scatter_kwargs.pop('cut_line')
+        _ = scatter_kwargs.pop('ymin')
+        _ = scatter_kwargs.pop('ymax')
+
+        
+        fig,ax = plt.subplots(ncols = 2, nrows=len(self.cities), figsize=(10,10),gridspec_kw = {'wspace':0, 'hspace':0.5})
+        for i,city in enumerate(self.cities):    
+            self._map(shap_type, 
+                    city,
+                    [ft0,ft1],
+                    ax[i,0],
+                    self.data[city][shap_type].base_values[0]
+                    )
+            
+            self._2ft_scatter(shap_type,
+                        city,
+                        [ft0,ft1],
+                        ax[i,1],
+                        scatter_kwargs,
+                        plot_kwargs,
+                        method,
+                        cut_line
+                        )
+            
         self.save_plot_figure(figname)
 
 
@@ -513,7 +620,9 @@ class PlotManager():
         for shap_type in self.shap_type:
             for city in self.cities:
                 print(f'Preparing {city} geoms...')
-                df = self.data[city]['df_test']
+                df = self.data[city]['df_test'].reset_index(drop=True)
+                df_merge = pd.merge(df[['tractid']],self.data[city]['df_rescaled'][['y_test']],left_index=True,right_index=True)
+
                 gdf = utils.init_geoms(self.path_root, city, bound='fua')
                     
                 shap_vals = {}
@@ -521,9 +630,9 @@ class PlotManager():
                 
                 # based on 5 city folds
                 shap_vals['values'] = self.data[city][self.shap_type[0]].values 
-                df_shap = pd.DataFrame(shap_vals['values'],columns = shap_vals['ft'], index=df.index)
+                df_shap = pd.DataFrame(shap_vals['values'],columns = shap_vals['ft'], index=df_merge.index)
             
-                df_out = pd.merge(df.reset_index(drop=True),df_shap.reset_index(drop=True), left_index=True, right_index=True)
+                df_out = pd.merge(df_merge,df_shap, left_index=True, right_index=True)
                 gdf_out = pd.merge(gdf, df_out, on = 'tractid')
 
                 # also add co2 values to gdf_out
@@ -586,7 +695,7 @@ class PlotManager():
                 self.data = utils.load_pickle(run_pkl[0])
             else: raise ValueError(f'No or several datasets founds: {run_pkl}')
 
-        # rescale explainer
+        # rescale explainern
         self.data = utils_ml.get_rescaled_explainer(self.data, 'causal_shap_test') # TODO ony causal shap supported
 
         # units
@@ -612,11 +721,14 @@ class PlotManager():
                                             self.scatter_kwargs,
                                             self.plot_kwargs,
                                             self.legend_kwargs)
-        if fig=='individual_scatter': sf.individual_scatter(shap_type,
-                                                            self.scatter_kwargs)
+        if fig=='individual_scatter': sf.individual_scatter(shap_type,self.scatter_kwargs)
         if fig=='beeswarm': sf.beeswarm(shap_type)            
-        if fig == 'city_bars': sf.city_bars(shap_type,
-                                            self.legend_kwargs)
+        if fig == 'city_bars': sf.city_bars(shap_type,self.legend_kwargs)
+        if fig == 'map_scatter_corridors': sf.map_scatter_corridors(shap_type,                                                            
+                                                                    self.scatter_kwargs,
+                                                                    self.plot_kwargs,
+                                                                    ft0='ft_dist_cbd',
+                                                                    ft1='ft_pop_dense',)
         if fig=='bars': sf.bars(shap_type)
         #if fig=='shap_comparison': sf.shap_comparison(shap_type)
 
