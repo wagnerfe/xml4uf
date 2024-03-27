@@ -1,0 +1,17 @@
+---
+# overview yml file for preprocessing
+- run_name: 't001/generalization_new_chain_hyp_opt'
+  path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
+  data: Null
+  figures:
+    #- individual_scatter 
+    # - map 
+    # - map_w_ft_map 
+    #- beeswarm 
+    - map_scatter_corridors
+  shap_type: 'causal_shap_test'
+  title: test
+  save_fig: False
+
+  
+
