@@ -438,8 +438,9 @@ class ShapFigures():
                             color = self.city_colors[city],
                             plot_type="bar")
             plt.locator_params(nbins=4)
-            ax.set_title(f"{CITY_NAMES[city]}, {figname}")
+            ax.set_title(f"{CITY_NAMES[city]}")
         
+        plt.suptitle(f'{figname}',fontsize=self.fontsize,y=0.995)
         self.save_plot_figure(figname, city)
 
 
@@ -452,7 +453,8 @@ class ShapFigures():
             plt.sca(ax)
             shap.summary_plot(explanation, show =False, plot_size=None,plot_type="dot")
 
-            ax.set_title(f"{CITY_NAMES[city]}, {figname}")
+            ax.set_title(f"{CITY_NAMES[city]}")
+        plt.suptitle(f'{figname}',fontsize=self.fontsize,y=0.995)
         
         self.save_plot_figure(figname, city)
 
