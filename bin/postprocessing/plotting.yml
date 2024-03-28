@@ -7,9 +7,10 @@
     #- individual_scatter 
     # - map 
     # - map_w_ft_map 
-    #- beeswarm 
-    - map_scatter_corridors
+    - beeswarm 
+    #- map_scatter_corridors
   shap_type: 'causal_shap_test'
+  shap_cmap: 'cool' # Null equals default, 'cool' as alternative
   title: test
   save_fig: False
 

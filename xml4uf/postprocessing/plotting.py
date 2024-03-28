@@ -451,7 +451,7 @@ class ShapFigures():
         for city, ax in zip(self.cities, axs.ravel()):
             explanation = self.data[city][shap_type]
             plt.sca(ax)
-            shap.summary_plot(explanation, show =False, plot_size=None,plot_type="dot")
+            shap.summary_plot(explanation, show =False, plot_size=None,plot_type="dot", cmap='cool')
 
             ax.set_title(f"{CITY_NAMES[city]}")
         plt.suptitle(f'{figname}',fontsize=self.fontsize,y=0.995)
@@ -521,6 +521,7 @@ class PlotManager():
                 data = None,
                 figures = None,
                 shap_type=None,
+                shap_cmap = None,
                 title = None,
                 save_fig = None,
                 ):
