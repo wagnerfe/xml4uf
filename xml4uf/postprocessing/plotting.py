@@ -46,9 +46,10 @@ class ShapFigures():
                  geoms = None,
                  features = None,
                  cities = None,
+                 title = None,
                  fontsize = None,
                  labelsize = None,
-                 save_fig = None,
+                 save_figs = None,
                  shap_cmap = None,
                  city_colors = None,
                  path_out = None
@@ -58,9 +59,10 @@ class ShapFigures():
         self.geoms = geoms
         self.features = features
         self.cities = cities
+        self.title = title
         self.fontsize = fontsize
         self.labelsize = labelsize
-        self.save_fig = save_fig
+        self.save_figs = save_figs
         self.shap_cmap = shap_cmap
         self.city_colors = city_colors
         self.path_out = path_out
@@ -96,7 +98,7 @@ class ShapFigures():
                 ax.axis('off')
                 ax.set_title(f"{FEATURE_NAMES[col]}",fontsize=self.labelsize)
             plt.suptitle(f"{CITY_NAMES[city]}: {figname}",fontsize=self.fontsize)
-            self.save_plot_figure(figname,city)
+            self.save_fig(fig, figname,city)
         
 
     def _get_smooth_xy(self,
@@ -187,7 +189,6 @@ class ShapFigures():
 
     def city_scatter(self,
                     shap_type,
-                    title,
                     scatter_kwargs,
                     plot_kwargs,
                     legend_kwargs,
@@ -197,8 +198,9 @@ class ShapFigures():
         figname = self.run_id+'_scatter'
         method = scatter_kwargs.pop('method')
         cut_line = scatter_kwargs.pop('cut_line')
+        ymin = scatter_kwargs.pop('ymin')
+        ymax = scatter_kwargs.pop('ymax')
         
-    
         i=0
         fig,axs = plt.subplots(ncols = 2, nrows=2, figsize=(10,6))
         for col, ax in zip(self.features, axs.ravel()):
@@ -215,7 +217,8 @@ class ShapFigures():
                                                 method=method,
                                                 lengthscale=max(dat[mask_cut])*3)
 
-                idx = np.random.choice(np.arange(len(dat)), 80, replace=False)
+                #idx = np.random.choice(np.arange(len(dat)), 100, replace=False)
+                idx = slice(None)
                 ax.scatter(dat[idx], vals[idx], color=legend_kwargs['colors'][CITY_NAMES[city]], **scatter_kwargs)
                 ax.plot(smooth_x, smooth_y, color=legend_kwargs['colors'][CITY_NAMES[city]], label=CITY_NAMES[city], **plot_kwargs)
                 
@@ -236,7 +239,7 @@ class ShapFigures():
             # ax lims
             if col == 'ft_pop_dense': ax.set_xlim(-1000,30*1e3)    
             if col == 'ft_beta': ax.set_xlim(-10,300)    
-            ax.set_ylim(-0.5,2.3)
+            ax.set_ylim(ymin,ymax)
             
             i+=1
             plt.tight_layout() 
@@ -251,8 +254,10 @@ class ShapFigures():
                 ax.grid(linestyle='dashed')
 
         fig.legend(handles = legend_kwargs['handles'], labels = legend_kwargs['labels'], loc='lower center', ncol=6, bbox_to_anchor=(0.5,-0.11),facecolor='white')
-        fig.suptitle(title,y=1.02)
-        self.save_plot_figure(figname)
+        if self.title is not None: suptitle = self.title+':'+figname
+        else: suptitle = figname
+        fig.suptitle(suptitle,y=1.02,fontsize = self.fontsize)
+        self.save_fig(fig, figname)
 
     
     def individual_scatter(self, shap_type, scatter_kwargs):   
@@ -283,7 +288,7 @@ class ShapFigures():
                 ax.set_ylim(scatter_kwargs['ymin'],scatter_kwargs['ymax'])
 
             plt.suptitle(f'{CITY_NAMES[city]},{figname}',fontsize=self.fontsize)
-            self.save_plot_figure(figname,city)
+            self.save_fig(fig, figname,city)
 
 
     def city_bars(self, shap_type, legend_kwargs):
@@ -317,7 +322,7 @@ class ShapFigures():
         ax.spines[['top','right']].set_visible(False)
         #fig.legend(handles = legend_kwargs['handles'], labels = legend_kwargs['labels'], loc='center', ncol=6, bbox_to_anchor=(0.6,-0.05))
         
-        self.save_plot_figure(figname)
+        self.save_fig(fig, figname)
 
 
     def _2ft_scatter(self, shap_type, city, fts, axi, scatter_kwargs,plot_kwargs,method, cut_line):
@@ -422,7 +427,7 @@ class ShapFigures():
                         cut_line
                         )
             
-        self.save_plot_figure(figname)
+        self.save_fig(fig, figname)
 
 
     def bars(self, shap_type):
@@ -440,8 +445,10 @@ class ShapFigures():
             plt.locator_params(nbins=4)
             ax.set_title(f"{CITY_NAMES[city]}")
         
-        plt.suptitle(f'{figname}',fontsize=self.fontsize,y=0.995)
-        self.save_plot_figure(figname, city)
+        if self.title is not None: suptitle = self.title+':'+figname
+        else: suptitle = figname
+        fig.suptitle(suptitle,fontsize=self.fontsize,y=0.995)
+        self.save_fig(fig, figname, city)
 
 
     def beeswarm(self, shap_type):         
@@ -451,13 +458,13 @@ class ShapFigures():
         for city, ax in zip(self.cities, axs.ravel()):
             explanation = self.data[city][shap_type]
             plt.sca(ax)
-            shap.summary_plot(explanation, show =False, plot_size=None,plot_type="dot", cmap='cool')
+            shap.summary_plot(explanation, show =False, plot_size=None,plot_type="dot", cmap=self.shap_cmap)
 
             ax.set_title(f"{CITY_NAMES[city]}")
-        plt.suptitle(f'{figname}',fontsize=self.fontsize,y=0.995)
-        
-        self.save_plot_figure(figname, city)
-
+        if self.title is not None: suptitle = self.title+':'+figname
+        else: suptitle = figname
+        fig.suptitle(suptitle,fontsize=self.fontsize,y=0.995)
+        self.save_fig(fig, figname)
 
     # def shap_comparison(self): # TODO
     #     data_tmp = utils.load_pickle('/Users/felix/cluster_remote/p/projects/eubucco/other_projects/urbanformvmt_global/data/5_ml/t25_1st_submission/individual_cities_normed/all_feature/ml_bebobolarisf_pol_XGBRegressor_dis_spNone_ns5600.pkl')
@@ -479,7 +486,7 @@ class ShapFigures():
 
     #             plt.gcf().set_size_inches(20,3)
     #             plt.tight_layout() 
-    #             if not self.save_plot_figure: plt.show()
+    #             if not self.save_fig: plt.show()
 
 
     # def map_w_ft_map(self, shap_type):
@@ -498,19 +505,20 @@ class ShapFigures():
     #                 ax[0].axis('off')
     #                 ax[1].axis('off')
     #                 plt.suptitle(f"{CITY_NAMES[city]}: {col[:-5]}, {figname}",fontsize=self.fontsize)
-    #                 self.save_plot_figure(figname,city,col)   
+    #                 self.save_fig(fig, figname,city,col)   
 
 
-    def save_plot_figure(self,name, city=None, col=None):
-        if self.save_fig:
-            print(f'Saving {name} for {city}...')
+    def save_fig(self,fig, name, city=None, col=None):
+        if self.save_figs:
+            print(f'Saving {name}')
             if city: name = name +'_'+city
             if col: name = name + '_'+col # TODO?
-            name = name + '.png'
-            plt.savefig(os.path.join(self.path_out,name),bbox_inches='tight',dpi=300)
+            if self.title is not None: name = name + '_' + self.title
+            name += '.png'
+            fig.savefig(os.path.join(self.path_out,name),bbox_inches='tight',dpi=300)
         else:
             plt.tight_layout
-            plt.show()
+            plt.show()  
 
 
 class PlotManager():
@@ -518,12 +526,13 @@ class PlotManager():
     def __init__(self=None,
                 run_name = None,
                 path_root = None,
+                path_out = None,
                 data = None,
                 figures = None,
                 shap_type=None,
                 shap_cmap = None,
                 title = None,
-                save_fig = None,
+                save_figs = None,
                 ):
         
         # vars
@@ -532,15 +541,18 @@ class PlotManager():
         else: self.shap_type = [shap_type]
         self.figures = figures
         self.title = title
-        self.save_fig = save_fig
+        self.save_figs = save_figs
         self.geoms = None
 
         # paths
         self.path_root = path_root
         self.path_out = None
-        if self.save_fig:
-            self.path_out = os.path.join(path_root,'5_ml',run_name,'plots')
-            Path(self.path_out).mkdir(parents=True, exist_ok=True)    
+        if self.save_figs:
+            if path_out is not None:
+                self.path_out = path_out
+            else:
+                self.path_out = os.path.join(path_root,'5_ml',run_name,'plots')
+                Path(self.path_out).mkdir(parents=True, exist_ok=True)    
         
         # naming 
         self.run_name = run_name
@@ -557,18 +569,19 @@ class PlotManager():
                     '#e78ac3',]
         self.feature_colors = sns.color_palette(self.palette, n_colors=4)
         self.city_colors = COLORS
-        self.shap_cmap = shap.plots.colors.red_blue
+        if shap_cmap is not None: self.shap_cmap = shap_cmap
+        else: self.shap_cmap = shap.plots.colors.red_blue
 
         # scatter kwargs
         self.scatter_kwargs = {'method': 'localreg', # 'gp', 'polynomial','binning'
                                 'cut_line':True,
-                                'alpha': 0.2,
-                                's': 10,
+                                'alpha': 0.6,
+                                's': 2,
                                 'marker': '.',
                                 'ymin':-0.5,
                                 'ymax':2.3,
                                 }
-        self.plot_kwargs = {'linewidth': 2}
+        self.plot_kwargs = {'linewidth': 1}
 
 
     def adjust_units(self,data):
@@ -647,6 +660,7 @@ class PlotManager():
         
         return geoms
 
+
     def get_city_stats(self):
         self.stats = {}
         for city in self.cities:
@@ -717,23 +731,27 @@ class PlotManager():
         self.legend_kwargs = self.get_args()
 
 
-    def plotting(self,sf,fig, shap_type):
-        if fig=='map': sf.map(shap_type)
-        if fig=='city_scatter': sf.city_scatter(shap_type,
-                                            self.title,
+    def plotting(self,sf,fig_type, shap_type):
+        if fig_type=='map': sf.map(shap_type)
+        if fig_type=='city_scatter': sf.city_scatter(shap_type,
                                             self.scatter_kwargs,
                                             self.plot_kwargs,
                                             self.legend_kwargs)
-        if fig=='individual_scatter': sf.individual_scatter(shap_type,self.scatter_kwargs)
-        if fig=='beeswarm': sf.beeswarm(shap_type)            
-        if fig == 'city_bars': sf.city_bars(shap_type,self.legend_kwargs)
-        if fig == 'map_scatter_corridors': sf.map_scatter_corridors(shap_type,                                                            
+        if fig_type=='individual_scatter': sf.individual_scatter(shap_type,self.scatter_kwargs)
+        if fig_type=='beeswarm': sf.beeswarm(shap_type)            
+        if fig_type == 'city_bars': sf.city_bars(shap_type,self.legend_kwargs)
+        if fig_type == 'map_scatter_corridors': sf.map_scatter_corridors(shap_type,                                                            
                                                                     self.scatter_kwargs,
                                                                     self.plot_kwargs,
                                                                     ft0='ft_dist_cbd',
                                                                     ft1='ft_pop_dense',)
-        if fig=='bars': sf.bars(shap_type)
-        #if fig=='shap_comparison': sf.shap_comparison(shap_type)
+        if fig_type=='bars': sf.bars(shap_type)
+        #if fig_type=='shap_comparison': sf.shap_comparison(shap_type)
+
+
+    # def init_fig(self,fig):
+    #     if fig in ['beeswarm', 'bars']:
+    #         return plt.subplots(ncols = 2, nrows=3,figsize=(13,10))     
 
 
     def create(self,mounted):
@@ -743,9 +761,10 @@ class PlotManager():
                          geoms = self.geoms,
                          features=self.features,
                          cities = self.cities,
+                         title = self.title,
                          fontsize = self.fontsize,
                          labelsize = self.labelsize,
-                         save_fig=self.save_fig,
+                         save_figs=self.save_figs,
                          shap_cmap = self.shap_cmap,
                          city_colors= self.city_colors,
                          path_out=self.path_out,
@@ -754,8 +773,9 @@ class PlotManager():
         for shap_type in self.shap_type:
             # run_id contains abbreviated shap and fold type for file storage
             sf.run_id = RUN_MAP[shap_type]
-            for fig in self.figures:
-                self.plotting(sf, fig, shap_type)
+            for fig_type in self.figures:
+                self.plotting(sf, fig_type, shap_type)
+
 
 
 def main():
