@@ -450,8 +450,8 @@ class ShapFigures():
             plt.locator_params(nbins=4)
             ax.set_title(f"{CITY_NAMES[city]}")
         
-        if self.title is not None: suptitle = self.title+':'+figname
-        else: suptitle = figname
+        if self.title is not None: suptitle = self.title+':'+figname+'; shap in [km]'
+        else: suptitle = figname+'; shap in [km]'
         fig.suptitle(suptitle,fontsize=self.fontsize,y=0.995)
         self.save_fig(fig, figname, city)
 
@@ -466,8 +466,8 @@ class ShapFigures():
             shap.summary_plot(explanation, show =False, plot_size=None,plot_type="dot", cmap=self.shap_cmap)
 
             ax.set_title(f"{CITY_NAMES[city]}")
-        if self.title is not None: suptitle = self.title+':'+figname
-        else: suptitle = figname
+        if self.title is not None: suptitle = self.title+':'+figname+'; shap in [km]'
+        else: suptitle = figname +'; shap in [km]'
         fig.suptitle(suptitle,fontsize=self.fontsize,y=0.995)
         self.save_fig(fig, figname)
 
@@ -555,11 +555,9 @@ class PlotManager():
         self.path_root = path_root
         self.path_out = None
         if self.save_figs:
-            if path_out is not None:
-                self.path_out = path_out
-            else:
-                self.path_out = os.path.join(path_root,'5_ml',run_name,'plots')
-                Path(self.path_out).mkdir(parents=True, exist_ok=True)    
+            if path_out is not None: self.path_out = path_out
+            else: self.path_out = os.path.join(path_root,'5_ml',run_name,'plots')
+            Path(self.path_out).mkdir(parents=True, exist_ok=True)    
         
         # naming 
         self.run_name = run_name
@@ -710,22 +708,22 @@ class PlotManager():
         return sorted(city_uci_tmp, key=city_uci_tmp.get,reverse=True)
         
 
-    def initialize(self, mounted):
-        # check if run locally
-        if (self.data is None) & (mounted):
-            path_files = os.path.join(self.path_root,'5_ml',self.run_name)
-            run_pkl = glob.glob(path_files+'/*.pkl')
-            if len(run_pkl)==1:
-                self.data = utils.load_pickle(run_pkl[0])
-            else: raise ValueError(f'No or several datasets founds: {run_pkl}')
+    def load_data(self):
+        path_files = os.path.join(self.path_root,'5_ml',self.run_name)
+        run_pkl = glob.glob(path_files+'/*.pkl')
+        if len(run_pkl)==1:
+            self.data = utils.load_pickle(run_pkl[0])
+        else: raise ValueError(f'No or several datasets founds: {run_pkl}')
 
-        # rescale explainern
-        self.data = utils_ml.get_rescaled_explainer(self.data, 'causal_shap_test') # TODO ony causal shap supported
 
-        # units
+    def initialize(self, shap_type):
+        
+        # load, rescale data and adjust units
+        self.load_data()
+        self.data = utils_ml.get_rescaled_explainer(self.data, shap_type)
         self.data = self.adjust_units(self.data)
 
-        # get city and feature names
+        # prepare city order and get feature names
         if self.cities is None:
             self.cities = self.get_cities_ordered()
         self.features = self.get_feature_names()
@@ -762,23 +760,25 @@ class PlotManager():
     #         return plt.subplots(ncols = 2, nrows=3,figsize=(13,10))     
 
 
-    def create(self,mounted):
+    def create(self):
         
-        self.initialize(mounted)
-        sf = ShapFigures(data=self.data,
-                         geoms = self.geoms,
-                         features=self.features,
-                         cities = self.cities,
-                         title = self.title,
-                         fontsize = self.fontsize,
-                         labelsize = self.labelsize,
-                         save_figs=self.save_figs,
-                         shap_cmap = self.shap_cmap,
-                         city_colors= self.city_colors,
-                         path_out=self.path_out,
-                         )
-
         for shap_type in self.shap_type:
+            
+            self.initialize(shap_type)
+
+            sf = ShapFigures(data=self.data,
+                            geoms = self.geoms,
+                            features=self.features,
+                            cities = self.cities,
+                            title = self.title,
+                            fontsize = self.fontsize,
+                            labelsize = self.labelsize,
+                            save_figs=self.save_figs,
+                            shap_cmap = self.shap_cmap,
+                            city_colors= self.city_colors,
+                            path_out=self.path_out,
+                            )
+
             # run_id contains abbreviated shap and fold type for file storage
             sf.run_id = RUN_MAP[shap_type]
             for fig_type in self.figures:
@@ -794,7 +794,7 @@ def main():
     if mounted:
         request = utils.get_input(PROJECT_SRC_PATH,'postprocessing/plotting.yml')
         pm = PlotManager(**request)
-        pm.create(mounted)    
+        pm.create()    
 
 if __name__ == "__main__":
     main() 
