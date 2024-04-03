@@ -326,7 +326,8 @@ class ShapFigures():
 
 
     def _2ft_scatter(self, shap_type, city, fts, axi, scatter_kwargs,plot_kwargs,method, cut_line):
-        # val_max = 0
+        
+        max_x = 0
         # val_min = 0
         c = {fts[0]:'#66c2a5',
             fts[1]: '#fc8d62',}
@@ -345,12 +346,12 @@ class ShapFigures():
             axi.scatter(dat, vals, **scatter_kwargs, color=c[col])
             axi.plot(smooth_x, smooth_y, label=CITY_NAMES[city], **plot_kwargs, color=c[col])
 
-            # if vals.max()>val_max:
-            #     val_max = vals.max()
+            if max(dat)>max_x: # for hline
+                max_x = max(dat)
 
             # if vals.min()<val_min:
             #     val_min = vals.min()
-
+        axi.hlines(y=0, xmin=0, xmax=max_x, color='gray', linestyle='dashed', linewidth=1) 
         axi.spines[['top','right']].set_visible(False)
         axi.set_xlabel(fr"{FEATURE_NAMES[fts[0]]} [km]", fontsize=self.labelsize)
         axi.set_ylabel(fr"[kgCO$_2$/Trip]", fontsize=self.labelsize)
@@ -401,13 +402,13 @@ class ShapFigures():
                             ft0='ft_dist_cbd',
                             ft1='ft_pop_dense',
                             ):
+        
         figname = self.run_id + '_corridors'
         method = scatter_kwargs.pop('method')
         cut_line = scatter_kwargs.pop('cut_line')
         _ = scatter_kwargs.pop('ymin')
         _ = scatter_kwargs.pop('ymax')
 
-        
         fig,ax = plt.subplots(ncols = 2, nrows=len(self.cities), figsize=(10,10),gridspec_kw = {'wspace':0, 'hspace':0.5})
         for i,city in enumerate(self.cities):    
             self._map(shap_type, 
@@ -427,6 +428,10 @@ class ShapFigures():
                         cut_line
                         )
             
+        if self.title is not None: suptitle = self.title+':'+figname
+        else: suptitle = figname
+        fig.suptitle(suptitle,fontsize=self.fontsize,y=0.995)
+        
         self.save_fig(fig, figname)
 
 
@@ -528,6 +533,7 @@ class PlotManager():
                 path_root = None,
                 path_out = None,
                 data = None,
+                cities = None,
                 figures = None,
                 shap_type=None,
                 shap_cmap = None,
@@ -539,6 +545,7 @@ class PlotManager():
         self.data = data    
         if type(shap_type) == list:self.shap_type = shap_type
         else: self.shap_type = [shap_type]
+        self.cities = cities
         self.figures = figures
         self.title = title
         self.save_figs = save_figs
@@ -719,7 +726,8 @@ class PlotManager():
         self.data = self.adjust_units(self.data)
 
         # get city and feature names
-        self.cities = self.get_cities_ordered()
+        if self.cities is None:
+            self.cities = self.get_cities_ordered()
         self.features = self.get_feature_names()
         self.rename_fts_in_shap()
 
