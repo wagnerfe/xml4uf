@@ -302,13 +302,11 @@ class Predictor():
         if eval_shap is not None:
             if 'causal_shap' in eval_shap:
                 self.data['df_causal_shap'] = pd.merge(df_out, self.data['df_causal_shap'],left_index=True,right_index=True)
-                self.data.pop('causal_shap_test',None) # remove leftover from kfold 
-                self.data['explanation_causal_cv'] = self.combine_kfold_explainer(explanation_causal_cv, folds) # combine explainer obj
+                self.data['causal_shap_test'] = self.combine_kfold_explainer(explanation_causal_cv, folds) # combine explainer obj
 
             if 'tree_shap' in eval_shap:
                 self.data['df_shap'] = pd.merge(df_out, self.data['df_shap'],left_index=True,right_index=True)
-                self.data.pop('shap_test',None) # remove leftover from kfold 
-                self.data['explanation_cv'] = self.combine_kfold_explainer(explanation_cv, folds) # combine explainer obj
+                self.data['shap_test'] = self.combine_kfold_explainer(explanation_cv, folds) # combine explainer obj
         else:
             self.data['df_out'] = df_out
 
@@ -441,17 +439,15 @@ class MlXval():
 
     def postprocess_kfold(self):
         for city in self.city_name:
-            if self.eval_shap is not None:
+            if (self.eval_shap is not None) & (len(self.city_name)>1):
                 if 'tree_shap' in self.eval_shap:
                     df = self.data_sum['all_folds']['df_shap']
                     self.data_sum[city+'_shap_test'] = df.loc[df['tractid'].str.contains(city)].reset_index(drop=True)
-                    self.data_sum['explanation_cv'] = self.data_sum['all_folds']['explanation_cv']
                 
                 if 'causal_shap' in self.eval_shap:
                     df = self.data_sum['all_folds']['df_causal_shap']
                     self.data_sum[city+'_causal_shap_test'] = df.loc[df['tractid'].str.contains(city)].reset_index(drop=True)
-                    self.data_sum['explanation_causal_cv'] = self.data_sum['all_folds']['explanation_causal_cv']
-
+                    
             if 'df_out' in self.data_sum['all_folds'].keys():
                 df = self.data_sum['all_folds']['df_out']
                 self.data_sum[city+'_out'] = df.loc[df['tractid'].str.contains(city)].reset_index(drop=True)
@@ -560,8 +556,8 @@ class MlXval():
             pickle.dump(self.data_sum, f)
 
         df = self._prepare_csv()
-        Path(os.path.join(self.path_out,'summary_csv')).mkdir(parents=True, exist_ok=True)
-        df.to_csv(os.path.join(self.path_out,'summary_csv',self.file_name+'.csv'),index=False)
+        Path(os.path.join(self.path_out,'summary')).mkdir(parents=True, exist_ok=True)
+        df.to_csv(os.path.join(self.path_out,'summary',self.file_name+'.csv'),index=False)
 
 
     def ml_training(self):
