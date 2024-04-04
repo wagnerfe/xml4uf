@@ -1,15 +1,15 @@
 import os,sys
 import pandas as pd
 import numpy as np
-import pickle
 import glob
+from pathlib import Path
 
 # as jupyter notebook cannot find __file__, import module and submodule path via current_folder
 PROJECT_SRC_PATH = os.path.realpath(os.path.join(__file__, '..','..','..', 'xml4uf'))
 sys.path.append(PROJECT_SRC_PATH)
 
-from utils.utils import get_input, load_pickle
-import utils.plotting as plotting
+import utils.utils as utils
+import postprocessing.plotting as plotting
 import utils.utils_ml as utils_ml
 
 
@@ -39,7 +39,11 @@ class SummarizeMl():
         self.rescale_shap = rescale_shap
         
         self.df = None
+        self.results_dict = None
         self.main_metrics = ['r2_model', 'r2_pred', 'mae_pred', 'rmse_pred', 'mean_sample', 'std_sample']
+        self.folder_path = os.path.join(self.path_root,'5_ml',self.run_name)
+        self.path_out = os.path.join(self.folder_path,'summary')
+        Path(self.path_out).mkdir(parents=True, exist_ok=True)    
 
 
     def get_city_name(self,file_path):
@@ -73,20 +77,25 @@ class SummarizeMl():
             return df.sort_values(by=['resolution','city']).reset_index(drop=True)
 
 
-    def summarize_ml_folder(self):
+    def summarize_folder(self):
         list_files = glob.glob(self.folder_path+'/*.pkl')
 
+        self.results_dict = {}
         lst=[]
         for i,file_path in enumerate(list_files):
-            cities_results = load_pickle(file_path)
-            city = list(cities_results.keys())[0]
-            results_dict = cities_results[city]
-            dict_metrics = {key: np.round(results_dict[key],2) for key in self.main_metrics}
+            cities_results = utils.load_pickle(file_path)
+            all_folds = list(cities_results.keys())[0]
+            
+            dict_metrics = {key: np.round(cities_results[all_folds][key],2) for key in self.main_metrics}
             dict_metrics['run'] = self.get_run_name(file_path)
-            dict_metrics['city'] = self.get_city_name(file_path)
+            city = self.get_city_name(file_path)
+            dict_metrics['city'] = city
             dict_metrics['resolution'] = self.get_resolution(file_path) 
+            
             lst.append(dict_metrics)
-        self.df = pd.DataFrame(lst)        
+            self.results_dict[city] = cities_results[all_folds]     
+
+        self.df = pd.DataFrame(lst)   
 
 
     def summarize_ml_file(self,folder=None):
@@ -94,7 +103,7 @@ class SummarizeMl():
         else: folder = os.path.join(self.folder_path,folder)
         
         path = os.path.join(folder,self.file_name)
-        cities_results = load_pickle(path)
+        cities_results = utils.load_pickle(path)
         
         lst=[]
         for i,city in enumerate(cities_results.keys()):
@@ -124,10 +133,17 @@ class SummarizeMl():
 
     def save_ml_summary(self):
         print(self.df)
+
         if self.file_name:
-                self.df.to_csv(os.path.join(self.folder_path,'0_sum_'+self.file_name[:-4]+'.csv'),index=False)
+            self.df.to_csv(os.path.join(self.path_out,'sum_'+self.file_name[:-4]+'.csv'),index=False)
         else:
-            self.df.to_csv(os.path.join(self.folder_path,'0_main_metrics.csv'),index=False)
+            self.df.to_csv(os.path.join(self.path_out,'summary_metrics.csv'),index=False)
+
+        if self.results_dict is not None:
+            cities_abbrev = ''
+            for c in sorted(self.results_dict.keys()): cities_abbrev += c[0:2]
+            utils.save_pickle(os.path.join(self.path_out,'ml_'+cities_abbrev+'.pkl'),self.results_dict)
+        
         print('Saving summary. Closed run.')
 
 
@@ -135,7 +151,7 @@ class SummarizeMl():
         list_files = glob.glob(self.folder_path+'/*.pkl')
         data={}
         for i,file_path in enumerate(list_files):
-            city_results = load_pickle(file_path)
+            city_results = utils.load_pickle(file_path)
             
             if i==0: data = city_results
             else: data.update(city_results)
@@ -144,7 +160,7 @@ class SummarizeMl():
     
     def create_figures(self):
         if self.file_name:
-            data = load_pickle(os.path.join(self.folder_path,self.file_name))
+            data = utils.load_pickle(os.path.join(self.folder_path,self.file_name))
         else: 
             data = self.get_run_data()
 
@@ -157,13 +173,12 @@ class SummarizeMl():
                                     self.run_name,
                                     self.figures,
                                     self.title,
-                                    self.day_hour)
+                                    self.day_hour) # TODO update
         plotter.initialize_shap()
         plotter.plot_figures(save_fig=False)
 
 
     def summarize(self):
-        self.folder_path = os.path.join(self.path_root,'5_ml',self.run_name)
         
         if self.summarise_run:
             if self.file_name: 
@@ -171,7 +186,7 @@ class SummarizeMl():
                     self.summarise_several_folders()
                 else:
                     self.summarize_ml_file()
-            else: self.summarize_ml_folder()
+            else: self.summarize_folder()
         
             self.df = self.clean_df(self.df)
             self.save_ml_summary()
@@ -182,7 +197,7 @@ class SummarizeMl():
 
 def main():
     
-    request = get_input(PROJECT_SRC_PATH,'postprocessing/sum_ml.yml')
+    request = utils.get_input(PROJECT_SRC_PATH,'postprocessing/sum_ml.yml')
 
     sr = SummarizeMl(**request)
     sr.summarize()
