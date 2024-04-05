@@ -9,6 +9,7 @@ import shap
 from pathlib import Path
 import numpy as np
 import seaborn as sns
+import copy 
 
 from sklearn.preprocessing import PolynomialFeatures, StandardScaler
 from sklearn.linear_model import LinearRegression
@@ -438,7 +439,7 @@ class ShapFigures():
     def bars(self, shap_type):
         figname = self.run_id+'_bars'
 
-        fig,axs = plt.subplots(ncols = 2, nrows=3,figsize=(13,10))
+        fig,axs = plt.subplots(ncols = 2, nrows=int(len(self.cities)/2),figsize=(13,10))
         for city, ax in zip(self.cities, axs.ravel()):
             explanation = self.data[city][shap_type]
             plt.sca(ax)
@@ -459,7 +460,7 @@ class ShapFigures():
     def beeswarm(self, shap_type):         
         figname= self.run_id+'_beeswarm'
         
-        fig,axs = plt.subplots(ncols = 2, nrows=3,figsize=(13,10))
+        fig,axs = plt.subplots(ncols = 2, nrows=int(len(self.cities)/2),figsize=(13,10))
         for city, ax in zip(self.cities, axs.ravel()):
             explanation = self.data[city][shap_type]
             plt.sca(ax)
@@ -636,32 +637,39 @@ class PlotManager():
             print(f'Lost samples when merging! Pre: {len(df_pre)}, Post: {len(df_post)}')
 
 
-    def assign_geoms_to_shap(self):    
+    def assign_geoms_to_shap(self, shap_type):    
         geoms = {}
-        for shap_type in self.shap_type:
-            for city in self.cities:
-                print(f'Preparing {city} geoms...')
-                df = self.data[city]['df_test'].reset_index(drop=True)
-                df_merge = pd.merge(df[['tractid']],self.data[city]['df_rescaled'][['y_test']],left_index=True,right_index=True)
-
-                gdf = utils.init_geoms(self.path_root, city, bound='fua')
-                    
-                shap_vals = {}
-                shap_vals['ft'] = [col+'_shap' for col in self.data[city]['X_test'] if 'ft' in col]
-                
-                # based on 5 city folds
-                shap_vals['values'] = self.data[city][self.shap_type[0]].values 
-                df_shap = pd.DataFrame(shap_vals['values'],columns = shap_vals['ft'], index=df_merge.index)
+        
+        for city in self.cities:
+            print(f'Preparing {city} geoms...')
+            gdf = utils.init_geoms(self.path_root, city, bound='fua')
+            df = self.data[city]['df_test'].reset_index(drop=True)
             
-                df_out = pd.merge(df_merge,df_shap, left_index=True, right_index=True)
-                gdf_out = pd.merge(gdf, df_out, on = 'tractid')
-
-                # also add co2 values to gdf_out
-                for ft in self.features:
-                    gdf_out[ft+'_co2'] = gdf_out[ft+'_shap']*CO2FACTORS[city]/1000 #kgCO2eq/km
+            if ('df_shap' in self.data[city].keys()) or ('df_shap' in self.data[city].keys()):
+                if shap_type == 'shap_test': df_shap = self.data[city]['df_shap']
+                else: df_shap = self.data[city]['df_causal_shap']
+                df_out = pd.merge(df,df_shap, on='tractid') # add feature vals
+            else:
                 
-                self.validate_sample_size(df,gdf_out)
-                geoms[city+'_'+shap_type] = gdf_out
+                if self.scaler:
+                    df_merge = pd.merge(df[['tractid']],self.data[city]['df_rescaled'][['y_test']],left_index=True,right_index=True)
+                else:
+                    df_merge = df
+                
+                shap_vals = {}
+                shap_vals['ft'] = [ft + '_shap' for ft in self.data[city][shap_type].feature_names]
+                df_shap = pd.DataFrame(self.data[city][shap_type].values,
+                                        columns = shap_vals['ft'],
+                                        index=df_merge.index)
+                df_out = pd.merge(df_merge,df_shap, left_index=True, right_index=True)
+                    
+            gdf_out = pd.merge(gdf, df_out, on = 'tractid')
+
+            for ft in self.features:
+                gdf_out[ft+'_co2'] = gdf_out[ft+'_shap']*CO2FACTORS[city]/1000 #kgCO2eq/km
+            
+            self.validate_sample_size(df,gdf_out)
+            geoms[city+'_'+shap_type] = gdf_out
         
         return geoms
 
@@ -672,7 +680,10 @@ class PlotManager():
             city_stats = {}
             city_stats['centrality'] = CITY_UCI[city]
             city_stats['area'] = CITY_AREAS[city]
-            city_stats['co2'] = np.mean(self.data[city]['df_rescaled'].y_test/1000*CO2FACTORS[city])/1000
+            if self.scaler:
+                city_stats['co2'] = np.mean(self.data[city]['df_rescaled'].y_test/1000*CO2FACTORS[city])/1000
+            else:
+                city_stats['co2'] = np.mean(self.data[city]['y_test']/1000*CO2FACTORS[city])/1000
             city_stats['r2'] = np.round(self.data[city]['r2_pred'],2)
             self.stats[city] = city_stats
 
@@ -720,7 +731,11 @@ class PlotManager():
         
         # load, rescale data and adjust units
         self.load_data()
-        self.data = utils_ml.get_rescaled_explainer(self.data, shap_type)
+        
+        if 'scaler' in self.data[next(iter(self.data))].keys(): self.scaler = True
+        else: self.scaler = False
+        
+        if self.scaler: self.data = utils_ml.get_rescaled_explainer(self.data, shap_type)
         self.data = self.adjust_units(self.data)
 
         # prepare city order and get feature names
@@ -731,7 +746,7 @@ class PlotManager():
 
         # get geoms for map plots
         if any("map" in fig for fig in self.figures):
-            self.geoms = self.assign_geoms_to_shap()
+            self.geoms = self.assign_geoms_to_shap(shap_type)
 
         # get colors and handles
         self.legend_kwargs = self.get_args()
@@ -740,15 +755,15 @@ class PlotManager():
     def plotting(self,sf,fig_type, shap_type):
         if fig_type=='map': sf.map(shap_type)
         if fig_type=='city_scatter': sf.city_scatter(shap_type,
-                                            self.scatter_kwargs,
-                                            self.plot_kwargs,
+                                            copy.deepcopy(self.scatter_kwargs),
+                                            copy.deepcopy(self.plot_kwargs),
                                             self.legend_kwargs)
-        if fig_type=='individual_scatter': sf.individual_scatter(shap_type,self.scatter_kwargs)
+        if fig_type=='individual_scatter': sf.individual_scatter(shap_type,copy.deepcopy(self.scatter_kwargs))
         if fig_type=='beeswarm': sf.beeswarm(shap_type)            
         if fig_type == 'city_bars': sf.city_bars(shap_type,self.legend_kwargs)
         if fig_type == 'map_scatter_corridors': sf.map_scatter_corridors(shap_type,                                                            
-                                                                    self.scatter_kwargs,
-                                                                    self.plot_kwargs,
+                                                                    copy.deepcopy(self.scatter_kwargs),
+                                                                    copy.deepcopy(self.plot_kwargs),
                                                                     ft0='ft_dist_cbd',
                                                                     ft1='ft_pop_dense',)
         if fig_type=='bars': sf.bars(shap_type)
