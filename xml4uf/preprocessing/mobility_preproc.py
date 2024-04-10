@@ -514,7 +514,7 @@ class ParseRaw_Inrix():
             tstart = datetime.time(int(self.starttime), 0, 0) # 0am
             tend = datetime.time(int(self.endtime), 0, 0)  # 24pm
             
-            gdf_trips = utils_mobility.clean_date_cols(gdf_trips)
+            gdf_trips = utils_mobility.clean_date(gdf_trips)
             gdf_trips = utils_mobility.set_weektime(gdf_trips,self.weekend, tstart, tend)
             print(f'Num trips after weektime filter: {len(gdf_trips)}')
 

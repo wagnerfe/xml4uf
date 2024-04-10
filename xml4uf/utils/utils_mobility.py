@@ -110,7 +110,7 @@ def set_weektime(gdf, weekend, start_hour, end_hour):
 
 
 def clean_date(df):
-    startdate_cleaned = df['startdate'].str.split('+',expand=True)[0]
+    startdate_cleaned = df['startdate'].str.split('Z',expand=True)[0]
     df['startdate'] = startdate_cleaned.str.split('.',expand=True)[0]
     
     enddate_cleaned = df['enddate'].str.split('Z',expand=True)[0]
