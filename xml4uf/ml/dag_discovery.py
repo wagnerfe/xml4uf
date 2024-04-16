@@ -266,7 +266,7 @@ class CausalGraphDiscovery():
 
     def _create_dag_plot(self):
         var_names = utils_causal.translate_var_names(self.var_names)
-        if utils.check_if_mounted(PROJECT_SRC_PATH): # when mounted locally print plot
+        if utils.check_if_mounted(): # when mounted locally print plot
             tp.plot_graph(val_matrix=self.results['val_matrix'],
                     graph=self.results['graph'],
                     var_names=var_names,
