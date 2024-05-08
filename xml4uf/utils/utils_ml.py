@@ -486,11 +486,15 @@ def rescale_data(city_data, scaler):
     return df_rescaled, df_test['y_predict']
 
 
+def get_shap_abbreviation(shap_type):
+    if shap_type =='causal_shap_test': return 'cshap'
+    else: return 'mshap'
+
+
 def append_shap_vals(city_data, shap_type):
     df = city_data['df_test'].reset_index(drop=True)
-    
     shap_vals = {}
-    shap_vals['ft'] = [col+'_shap' for col in city_data['X_test'] if 'ft' in col]
+    shap_vals['ft'] = [col+'_'+ get_shap_abbreviation(shap_type) for col in city_data['X_test'] if 'ft' in col]
     shap_vals['values'] = city_data[shap_type].values # getting values out of explainer object
     df_shap = pd.DataFrame(shap_vals['values'],columns = shap_vals['ft'], index=df.index)
     return df_shap
@@ -513,8 +517,9 @@ def rescale_shap(city_data, y_predict,df_rescaled, shap_type, min_baseline=False
     return df_shap_rescaled
 
 
-def update_shap_obj(explainer, df_rescaled, features):    
-    df_shap_rescaled = df_rescaled[[col for col in df_rescaled if 'shap' in col]]
+def update_shap_obj(explainer_in, df_rescaled, features, shap_type):    
+    explainer = explainer_in[shap_type]
+    df_shap_rescaled = df_rescaled[[col for col in df_rescaled if get_shap_abbreviation(shap_type) in col]]
     # now we assign it to the shap explainer object
     shap_obj = explainer
     shap_obj.values = df_shap_rescaled.values
@@ -528,21 +533,35 @@ def get_feature_names(data):
     return list(data[first_key]['X_train'].columns)
 
 
-def rescale(city_data, shap_type, min_baseline=False):
+def rescale(city_data, shap_type=None, min_baseline=False):
+    # rescales per individual city; runs without any shap values are not supported
     df_rescaled, y_predict = rescale_data(city_data,city_data['scaler'])
-    df_shap_rescaled = rescale_shap(city_data, y_predict, df_rescaled, shap_type, min_baseline)
-    df_rescaled = pd.merge(df_rescaled, df_shap_rescaled, left_index=True, right_index=True)
-    return df_rescaled
+    
+    if shap_type is None: shap_types = ['shap_test','causal_shap_test']
+    else: shap_types = [shap_type]
+    
+    for shap_x in shap_types:
+        df_shap_rescaled = rescale_shap(city_data, y_predict, df_rescaled, shap_x, min_baseline)
+        df_rescaled = pd.merge(df_rescaled, df_shap_rescaled,left_index=True, right_index=True)
+    
+    return df_rescaled    
 
 
-def get_rescaled_explainer(data, shap_type, min_baseline=False):
+def get_rescaled_explainer(data, shap_type = None, min_baseline=False):
+    # rescales for all cities, adds df_rescaled and updated explainer object into dict
+    # naming is quite bad as its both rescaling the explainer & adding df_rescaled
     features = get_feature_names(data)
 
+    if shap_type is None: shap_types = ['shap_test','causal_shap_test']
+    else: shap_types = [shap_type]
+    
     for city in data.keys():
         print(f'Rescaling shap values for {city}')
-        df_rescaled = rescale(data[city], shap_type, min_baseline)
-        data[city][shap_type] = update_shap_obj(data[city][shap_type], df_rescaled, features)   
-        data[city]['df_rescaled'] = df_rescaled
+        data[city]['df_rescaled'] = rescale(data[city], shap_type, min_baseline)
+        
+        for shap_x in shap_types:
+            data[city][shap_x] = update_shap_obj(data[city], data[city]['df_rescaled'], features, shap_x)   
+        
     return data
 
 
