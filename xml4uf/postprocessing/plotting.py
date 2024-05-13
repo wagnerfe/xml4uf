@@ -327,7 +327,7 @@ class ShapFigures():
                 ax.set_ylabel(f"Feature effect [kgCO$_2$/Trip]",fontsize = self.labelsize)
                 ax.set_ylim(scatter_kwargs['ymin'],scatter_kwargs['ymax'])
 
-            plt.suptitle(f'{CITY_NAMES[city]},{figname}',fontsize=self.fontsize)
+            plt.suptitle(f'{CITY_NAMES[city]}',fontsize=self.fontsize)
             
             handles = [mpatches.Circle((0,0),1,color='gray', label='Marginal Shap'),
                        mpatches.Circle((0,0),1,color=self.city_colors[city], label='Causal Shap')]
