@@ -35,8 +35,10 @@ COLORS = {'ber':'blue',
 
 RUN_MAP = {'shap_test': 'shap_ckf', # tree shap,  city kfold
             'causal_shap_test':'cshap_ckf', # causal shap, city kfold
-            'shap_values': 'shap_ikf', # shap, indiv fold,
-            'causal_shap_values': 'cshap_ikf'} # causal shap, indiv fold
+            'shap_values': 'shap_ikf', # shap, indiv fold, TODO makes sense?
+            'causal_shap_values': 'cshap_ikf', # causal shap, indiv fold TODO makes sense?
+            'combined': 'combined_ckf', 
+            } 
 
 
 
@@ -292,6 +294,49 @@ class ShapFigures():
             self.save_fig(fig, figname,city)
 
 
+    def individual_scatter_full(self, scatter_kwargs):
+        figname = self.run_id+'_scatter_full'
+        
+        for city in self.cities:
+            fig,axs = plt.subplots(ncols = 2, nrows=int(len(self.features)/2), figsize=(10,6))
+            for col, ax in zip(self.features, axs.ravel()):                
+                for shap_x in ['mshap','cshap']:
+                    vals = self.data[city]['df_rescaled'][col+'_'+shap_x].values*CO2FACTORS[city]*1e-6 # needs rescaling here as adjust units is only on explainer obj
+                    dat = self.data[city]['df_rescaled'][col].values*1e6
+                    
+                    if shap_x == 'mshap': args = {'c':'gray',
+                                                'alpha':0.5,
+                                                'shap_x':'Marginal Shap'}
+                    else: args = {'c':self.city_colors[city],
+                                'alpha':1,
+                                'shap_x':'Causal Shap'}
+            
+                    sns.regplot(x=dat,
+                                y=vals,
+                                fit_reg=False,
+                                ax=ax,
+                                scatter_kws = {'alpha':args['alpha'],
+                                                'marker':scatter_kwargs['marker'], 
+                                                's':scatter_kwargs['s']},
+                                color = args['c'],
+                                label=f"{args['shap_x']}")
+                    
+                # ax
+                ax.spines[['top','right']].set_visible(False)
+                ax.set_xlabel(f"{FEATURE_NAMES[col]}", fontsize = self.labelsize)
+                ax.set_ylabel(f"Feature effect [kgCO$_2$/Trip]",fontsize = self.labelsize)
+                ax.set_ylim(scatter_kwargs['ymin'],scatter_kwargs['ymax'])
+
+            plt.suptitle(f'{CITY_NAMES[city]},{figname}',fontsize=self.fontsize)
+            
+            handles = [mpatches.Circle((0,0),1,color='gray', label='Marginal Shap'),
+                       mpatches.Circle((0,0),1,color=self.city_colors[city], label='Causal Shap')]
+            
+            fig.legend(handles = handles, labels = ['Marginal Shap','Causal Shap'], loc='lower center', ncol=2,bbox_to_anchor=(0.5,-0.05))
+            
+            self.save_fig(fig, figname,city)
+
+
     def city_bars(self, shap_type, legend_kwargs):
         figname = self.run_id+'_city_bars'
 
@@ -376,8 +421,6 @@ class ShapFigures():
         return gdf.replace({'max_shap_ft_index':FEATURE_NAMES,'min_shap_ft_index':FEATURE_NAMES }) 
 
         
-
-
     def _map(self,shap_type, city, fts, axj, mean_dist):
         cmap = matplotlib.colors.ListedColormap(['#66c2a5','#fc8d62'])
         gdf = self._get_min_max_shap_cbd_density(shap_type,city,fts)
@@ -471,47 +514,6 @@ class ShapFigures():
         else: suptitle = figname +'; shap in [km]'
         fig.suptitle(suptitle,fontsize=self.fontsize,y=0.995)
         self.save_fig(fig, figname)
-
-    # def shap_comparison(self): # TODO
-    #     data_tmp = utils.load_pickle('/Users/felix/cluster_remote/p/projects/eubucco/other_projects/urbanformvmt_global/data/5_ml/t25_1st_submission/individual_cities_normed/all_feature/ml_bebobolarisf_pol_XGBRegressor_dis_spNone_ns5600.pkl')
-    #     for city in self.cities:
-    #         if 'shap_test' in self.data[city].keys():            
-    #             explanation_causal = self.data[city]['causal_shap_test']
-    #             explanation_causal = self.rename_fts_in_shap(explanation_causal)
-
-    #             explanation_marginal = data_tmp[city]['shap_test']
-    #             explanation_marginal = self.rename_fts_in_shap(explanation_marginal)
-                
-    #             fig = plt.figure()
-    #             ax0 = fig.add_subplot(131)
-    #             ax0.set_title('causal Shap')
-    #             shap.plots.bar(explanation_causal,show=False)
-    #             ax1 = fig.add_subplot(132)
-    #             ax1.set_title('tree Shap')
-    #             shap.plots.bar(explanation_marginal,show=False)
-
-    #             plt.gcf().set_size_inches(20,3)
-    #             plt.tight_layout() 
-    #             if not self.save_fig: plt.show()
-
-
-    # def map_w_ft_map(self, shap_type):
-    #     figname= self.run_id+'_map_w_ft'
-
-    #     for city in self.cities:
-    #         gdf = self.geoms[city+'_'+shap_type]
-    #         for col in gdf.columns:
-    #             if 'shap' in col:
-    #                 _,ax = plt.subplots(1,2,figsize=(20,10))
-                    
-    #                 divnorm_ft=colors.TwoSlopeNorm(vmin=min(gdf[col[:-5]]), vcenter=gdf[col[:-5]].mean(), vmax=max(gdf[col[:-5]]))
-    #                 gdf.plot(ax=ax[0], column=col, cmap=self.shap_cmap, legend =True, legend_kwds={'shrink': 0.3})
-    #                 gdf.plot(ax=ax[1], column=col[:-5], cmap='coolwarm',norm=divnorm_ft, legend =True, legend_kwds={'shrink': 0.3})
-                    
-    #                 ax[0].axis('off')
-    #                 ax[1].axis('off')
-    #                 plt.suptitle(f"{CITY_NAMES[city]}: {col[:-5]}, {figname}",fontsize=self.fontsize)
-    #                 self.save_fig(fig, figname,city,col)   
 
 
     def save_fig(self,fig, name, city=None, col=None):
@@ -652,16 +654,23 @@ class PlotManager():
             else:
                 
                 if self.scaler:
-                    df_merge = pd.merge(df[['tractid']],self.data[city]['df_rescaled'][['y_test']],left_index=True,right_index=True)
+                    shap_abbreviation = utils_ml.get_shap_abbreviation(shap_type)
+                    shap_cols = [ft +'_' + shap_abbreviation for ft in self.features]
+                    shap_cols_clean = [ft +'_shap' for ft in self.features]
+                    
+                    df_out = self.data[city]['df_rescaled'].reset_index(drop=True)
+                    df_out = df_out[['tractid','y_test','y_predict']+shap_cols]
+                    df_out = df_out.rename(columns=dict(zip(shap_cols,shap_cols_clean)))
+                
                 else:
                     df_merge = df
                 
-                shap_vals = {}
-                shap_vals['ft'] = [ft + '_shap' for ft in self.data[city][shap_type].feature_names]
-                df_shap = pd.DataFrame(self.data[city][shap_type].values,
-                                        columns = shap_vals['ft'],
-                                        index=df_merge.index)
-                df_out = pd.merge(df_merge,df_shap, left_index=True, right_index=True)
+                    shap_vals = {}
+                    shap_vals['ft'] = [ft + '_shap' for ft in self.data[city][shap_type].feature_names]
+                    df_shap = pd.DataFrame(self.data[city][shap_type].values,
+                                            columns = shap_vals['ft'],
+                                            index=df_merge.index)
+                    df_out = pd.merge(df_merge,df_shap, left_index=True, right_index=True)
                     
             gdf_out = pd.merge(gdf, df_out, on = 'tractid')
 
@@ -753,6 +762,7 @@ class PlotManager():
 
 
     def plotting(self,sf,fig_type, shap_type):
+        # per shap plots
         if fig_type=='map': sf.map(shap_type)
         if fig_type=='city_scatter': sf.city_scatter(shap_type,
                                             copy.deepcopy(self.scatter_kwargs),
@@ -767,15 +777,12 @@ class PlotManager():
                                                                     ft0='ft_dist_cbd',
                                                                     ft1='ft_pop_dense',)
         if fig_type=='bars': sf.bars(shap_type)
-        #if fig_type=='shap_comparison': sf.shap_comparison(shap_type)
+        
+        # comparing shap types plots
+        if fig_type=='individual_scatter_full': sf.individual_scatter_full(copy.deepcopy(self.scatter_kwargs))
+        
 
-
-    # def init_fig(self,fig):
-    #     if fig in ['beeswarm', 'bars']:
-    #         return plt.subplots(ncols = 2, nrows=3,figsize=(13,10))     
-
-
-    def create(self):
+    def plots_per_shap(self):
         
         for shap_type in self.shap_type:
             
@@ -799,7 +806,37 @@ class PlotManager():
             for fig_type in self.figures:
                 self.plotting(sf, fig_type, shap_type)
 
+    
+    def plots_combine_shap(self):
+            
+        self.initialize(self.shap_type)
 
+        sf = ShapFigures(data=self.data,
+                        geoms = self.geoms,
+                        features=self.features,
+                        cities = self.cities,
+                        title = self.title,
+                        fontsize = self.fontsize,
+                        labelsize = self.labelsize,
+                        save_figs=self.save_figs,
+                        shap_cmap = self.shap_cmap,
+                        city_colors= self.city_colors,
+                        path_out=self.path_out,
+                        )
+
+        # run_id contains abbreviated shap and fold type for file storage
+        sf.run_id = RUN_MAP['combined']
+        for fig_type in self.figures:
+            self.plotting(sf, fig_type, self.shap_type)
+
+    def create(self):
+        if type(self.shap_type) == list: 
+            if len(self.shap_type)>1: self.plots_combine_shap()
+            else: self.plots_per_shap()
+
+        else: self.plots_per_shap()
+        
+        
 
 def main():
     

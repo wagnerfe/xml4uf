@@ -365,17 +365,17 @@ def sample_data(df, sample_size):
     return df,len(df)
 
 
-def rescale(data, scaler, features):
-    df_test = data['df_test']    
+# def rescale(data, scaler, features):
+#     df_test = data['df_test']    
 
-    df_test['y_test'] = data['y_test']
-    df_test['y_predict'] = data['y_predict']
-    df_y_test = df_test[['y_test']+features]
-    df_y_predict = df_test[['y_predict']+features]
+#     df_test['y_test'] = data['y_test']
+#     df_test['y_predict'] = data['y_predict']
+#     df_y_test = df_test[['y_test']+features]
+#     df_y_predict = df_test[['y_predict']+features]
 
-    y_test_rescaled = pd.DataFrame(scaler.inverse_transform(df_y_test))[0]
-    y_predict_rescaled = pd.DataFrame(scaler.inverse_transform(df_y_predict))[0]
-    return y_test_rescaled, y_predict_rescaled
+#     y_test_rescaled = pd.DataFrame(scaler.inverse_transform(df_y_test))[0]
+#     y_predict_rescaled = pd.DataFrame(scaler.inverse_transform(df_y_predict))[0]
+#     return y_test_rescaled, y_predict_rescaled
 
 
 def print_r2(model, data, i=None, get_metrics=False):
@@ -482,7 +482,8 @@ def rescale_data(city_data, scaler):
     # rescale
     df_y_test_rescaled = pd.DataFrame(scaler.inverse_transform(df_y_test),columns=df_y_test.columns)
     df_y_predict_rescaled = pd.DataFrame(scaler.inverse_transform(df_y_predict), columns=df_y_predict.columns)
-    df_rescaled = pd.merge(df_y_test_rescaled[['y_test']],df_y_predict_rescaled, left_index=True, right_index=True )
+    df_rescaled = pd.merge(df_test[['tractid']], df_y_test_rescaled[['y_test']],left_index=True, right_index=True )
+    df_rescaled = pd.merge(df_rescaled,df_y_predict_rescaled, left_index=True, right_index=True)
     return df_rescaled, df_test['y_predict']
 
 
@@ -537,9 +538,11 @@ def rescale(city_data, shap_type=None, min_baseline=False):
     # rescales per individual city; runs without any shap values are not supported
     df_rescaled, y_predict = rescale_data(city_data,city_data['scaler'])
     
+    # make shape type to list for iteration, but also handle None or str
     if shap_type is None: shap_types = ['shap_test','causal_shap_test']
+    elif type(shap_type) == list: shap_types = shap_type
     else: shap_types = [shap_type]
-    
+
     for shap_x in shap_types:
         df_shap_rescaled = rescale_shap(city_data, y_predict, df_rescaled, shap_x, min_baseline)
         df_rescaled = pd.merge(df_rescaled, df_shap_rescaled,left_index=True, right_index=True)
@@ -553,6 +556,7 @@ def get_rescaled_explainer(data, shap_type = None, min_baseline=False):
     features = get_feature_names(data)
 
     if shap_type is None: shap_types = ['shap_test','causal_shap_test']
+    elif type(shap_type) == list: shap_types = shap_type
     else: shap_types = [shap_type]
     
     for city in data.keys():
