@@ -534,18 +534,18 @@ def get_feature_names(data):
     return list(data[first_key]['X_train'].columns)
 
 
-def rescale(city_data, shap_type=None, min_baseline=False):
+def rescale(city_data, shap_type=None, min_baseline=False): # does TODO None make sense here?! should also work without shap!!!
     # rescales per individual city; runs without any shap values are not supported
     df_rescaled, y_predict = rescale_data(city_data,city_data['scaler'])
     
     # make shape type to list for iteration, but also handle None or str
-    if shap_type is None: shap_types = ['shap_test','causal_shap_test']
-    elif type(shap_type) == list: shap_types = shap_type
-    else: shap_types = [shap_type]
+    if shap_type is not None: 
+        if type(shap_type) == list: shap_types = shap_type
+        else: shap_types = [shap_type]
 
-    for shap_x in shap_types:
-        df_shap_rescaled = rescale_shap(city_data, y_predict, df_rescaled, shap_x, min_baseline)
-        df_rescaled = pd.merge(df_rescaled, df_shap_rescaled,left_index=True, right_index=True)
+        for shap_x in shap_types:
+            df_shap_rescaled = rescale_shap(city_data, y_predict, df_rescaled, shap_x, min_baseline)
+            df_rescaled = pd.merge(df_rescaled, df_shap_rescaled,left_index=True, right_index=True)
     
     return df_rescaled    
 
@@ -555,9 +555,10 @@ def get_rescaled_explainer(data, shap_type = None, min_baseline=False):
     # naming is quite bad as its both rescaling the explainer & adding df_rescaled
     features = get_feature_names(data)
 
-    if shap_type is None: shap_types = ['shap_test','causal_shap_test']
-    elif type(shap_type) == list: shap_types = shap_type
-    else: shap_types = [shap_type]
+    if shap_type is not None: 
+        if type(shap_type) == list: shap_types = shap_type
+        else: shap_types = [shap_type]
+    else: raise ValueError('No shap type provided!')
     
     for city in data.keys():
         print(f'Rescaling shap values for {city}')
