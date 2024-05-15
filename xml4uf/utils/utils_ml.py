@@ -105,7 +105,7 @@ def split_fold(df_train, df_test, split):
 #     return pd.merge(df, gdf_points_num, on='id_'+od_col, how='left')
 
 
-def optimize_hype(model_name, estimator,X_train,y_train,hype_params):
+def optimize_hype(model_name, estimator,X_train,y_train,hype_params,verbose=True):
     print("Optimizing Hyperparameters..")
     if model_name == 'RandomForestRegressor':
         if 'learning_rate' in hype_params.keys(): # random forrests don't accept learning rates
@@ -113,7 +113,7 @@ def optimize_hype(model_name, estimator,X_train,y_train,hype_params):
 
     tuning = GridSearchCV(estimator=estimator, param_grid=hype_params, scoring="r2")
     tuning.fit(X_train, y_train)
-    print("Best Parameters found: ", tuning.best_params_)
+    if verbose: print("Best Parameters found: ", tuning.best_params_)
     return tuning.best_params_
 
 
@@ -296,7 +296,7 @@ def load_cities_sample(city_names = utils.DEFAULT_CITIES,
                         bound='fua',
                         features=utils.DEFAULT_FEATURES,
                         norm_cent=False,
-                        show = True,
+                        verbose = True,
                         add_geoms=False,
                         clean_kwargs = None):
     city_scaler={}
@@ -319,7 +319,8 @@ def load_cities_sample(city_names = utils.DEFAULT_CITIES,
                                     add_geoms=add_geoms, # if add_geoms, return dict (as we cannot have multiple geoms with different crs in same df)
                                     iou = iou, # intersection of union share at bound geoms
                                     path_root = path_root,
-                                    testing = False)
+                                    testing = False,
+                                    verbose=verbose)
         
         if clean_kwargs is not None:
             df_city = apply_cleaning(df_city,
@@ -327,6 +328,7 @@ def load_cities_sample(city_names = utils.DEFAULT_CITIES,
                                     path_root,
                                     day_hour,
                                     bound,
+                                    verbose=verbose,
                                     **clean_kwargs)
 
         if norm_cent:
@@ -335,7 +337,7 @@ def load_cities_sample(city_names = utils.DEFAULT_CITIES,
             df_city[[col for col in df_city.columns if col in scalable_cols]] = city_scaler[city].fit_transform(df_city[[col for col in df_city.columns if col in scalable_cols]])
         
         df_city['city_name'] = city
-        if show: print(df_city.head(2))
+        if verbose: print(df_city.head(2))
         
         if add_geoms:
             city_dict[city] = df_city
@@ -570,7 +572,7 @@ def get_rescaled_explainer(data, shap_type = None, min_baseline=False):
     return data
 
 
-def apply_cleaning(df, city, path_root, day_hour, bound, **clean_kwargs):
+def apply_cleaning(df, city, path_root, day_hour, bound, verbose=True, **clean_kwargs):
 # clean_kwargs = 
 # {
 #   'set_lower_bound':
@@ -592,44 +594,54 @@ def apply_cleaning(df, city, path_root, day_hour, bound, **clean_kwargs):
                                 add_geoms=False,
                                 iou=None,
                                 path_root = path_root,
-                                testing = False)
+                                testing = False,
+                                verbose=verbose)
             df = pd.merge(df,df_trips[['tractid','num_trips']],on='tractid')
 
         for ft in df.columns:
             if ft in clean_kwargs['set_lower_bound'].keys():
-                df = cut_lower_ft_bound(df,ft,cut_off=clean_kwargs['set_lower_bound'][ft])
+                df = cut_lower_ft_bound(df,
+                                        ft,
+                                        cut_off=clean_kwargs['set_lower_bound'][ft],
+                                        verbose=verbose)
 
     if 'set_upper_bound' in clean_kwargs.keys():
         for ft in df.columns:
             if ft in clean_kwargs['set_upper_bound'].keys():
-                df = cut_upper_ft_bound(df,ft,cut_off=clean_kwargs['set_upper_bound'][ft])
+                df = cut_upper_ft_bound(df,
+                                        ft,
+                                        cut_off=clean_kwargs['set_upper_bound'][ft],
+                                        verbose=verbose)
         
     if 'clean_airports' in clean_kwargs.keys():
         if clean_kwargs['clean_airports']:
-            df = clean_airports(df, city, path_root)
+            df = clean_airports(df,
+                                city,
+                                path_root,
+                                verbose=verbose)
     
     if 'num_trips' in df.columns: df=df.drop(columns='num_trips')
     return df
 
 
-def cut_lower_ft_bound(df,col,cut_off):
+def cut_lower_ft_bound(df,col,cut_off, verbose=True):
     mask=df[col]
     idx=mask.loc[mask>cut_off].index
-    print(f'Removing {len(df)-len(idx)} TAZ for cleaning {col} at lower cut_off {cut_off}...')
+    if verbose: print(f'Removing {len(df)-len(idx)} TAZ for cleaning {col} at lower cut_off {cut_off}...')
     return df.loc[idx].reset_index(drop=True)
 
 
-def cut_upper_ft_bound(df,col,cut_off):
+def cut_upper_ft_bound(df,col,cut_off, verbose=True):
     mask=df[col]
     idx=mask.loc[mask<cut_off].index
-    print(f'Removing {len(df)-len(idx)} TAZ for cleaning {col} at upper cut_off {cut_off}...')
+    if verbose: print(f'Removing {len(df)-len(idx)} TAZ for cleaning {col} at upper cut_off {cut_off}...')
     return df.loc[idx].reset_index(drop=True)
 
 
-def clean_airports(df, city, path_root): 
+def clean_airports(df, city, path_root, verbose=True): 
     crs_local = utils.get_crs_local(city)
     gdf_airports = utils.read_feature_preproc('airports',path_root,city,crs_local) 
     gdf = utils.init_geoms(path_root,city,'fua')
     tractid_airport = gpd.sjoin(gdf, gdf_airports)['tractid']
-    print(f'Removing {len(tractid_airport)} TAZ as they are on airports')
+    if verbose: print(f'Removing {len(tractid_airport)} TAZ as they are on airports')
     return df.loc[~df['tractid'].isin(tractid_airport)].reset_index(drop=True)

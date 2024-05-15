@@ -155,7 +155,7 @@ def save_dict_to_txt(param_dict, path):
     f.close()
 
 
-def get_input(path_source, param_file):
+def get_input(path_source, param_file, verbose=True):
     #  check if on cluster or locally mounted
     mounted, path_mount = check_if_mounted()
     if mounted: 
@@ -165,7 +165,9 @@ def get_input(path_source, param_file):
             request['path_root'] = path_mount + request['path_root'] # add mounted path to path_root
     else:
         request = json.load(sys.stdin)
-    print_parameter(request)
+    
+    if verbose:
+        print_parameter(request)
     return request
 
 
@@ -376,7 +378,7 @@ def remove_boundary_zips(gdf, gdf_bound, iou=0.5):
     return gdf.drop(columns='area')
 
 
-def init_geoms(path_root, city_name, bound, iou=None):
+def init_geoms(path_root, city_name, bound, iou=None, verbose=True):
     path_out = os.path.join(path_root,'3_features',city_name)
     crs_local = get_crs_local(city_name)
 
@@ -399,7 +401,7 @@ def init_geoms(path_root, city_name, bound, iou=None):
     if (bound is not None) & (iou is not None):
         len_pre = len(gdf_geoms)
         gdf_geoms = remove_boundary_zips(gdf_geoms,gdf_bound,iou).reset_index(drop=True)
-        print(f'Removing {len_pre-len(gdf_geoms)} zips due to iou = {iou} at bounds...')
+        if verbose: print(f'Removing {len_pre-len(gdf_geoms)} zips due to iou = {iou} at bounds...')
     
     return gdf_geoms[['tractid','geometry']]
 
@@ -536,12 +538,13 @@ def load_features(city_name,
                 add_geoms = True, 
                 iou = None,
                 path_root = get_path_root(), 
-                testing=False):
+                testing=False,
+                verbose=True):
 
     # load geoms
     dir_name = os.path.join(path_root,'3_features',city_name)        
     
-    df = init_geoms(path_root, city_name, bound, iou)
+    df = init_geoms(path_root, city_name, bound, iou, verbose=verbose)
     if not add_geoms:
         df = df.drop(columns='geometry')        
         

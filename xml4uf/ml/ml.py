@@ -36,7 +36,8 @@ class Predictor():
                  target = None,
                  features = None,
                  split = None,
-                 hyper_params = None
+                 hyper_params = None,
+                 verbose = True
                  ):
         
         self.df = df
@@ -45,6 +46,7 @@ class Predictor():
         self.model_name = model_name
         self.split = split
         self.hyper_params = hyper_params
+        self.verbose = verbose
 
         self.data = {}
         self.model = None
@@ -52,7 +54,7 @@ class Predictor():
         self.city = None    
 
 
-    def splitting(self, city, num_cities, verbose=True):
+    def splitting(self, city, num_cities):
         if num_cities > 1: fold_name = city
         else: fold_name = None #TODO: citywise SHAP requires foldname to be integer
 
@@ -61,7 +63,7 @@ class Predictor():
                                             self.target,
                                             kfold=fold_name,
                                             noise=False,
-                                            verbose=verbose)
+                                            verbose=self.verbose)
 
 
     def select_model(self):
@@ -81,7 +83,8 @@ class Predictor():
                                                         self.model,
                                                         self.data['X_train'],
                                                         self.data['y_train'], 
-                                                        self.hyper_params)
+                                                        self.hyper_params,
+                                                        verbose=self.verbose)
         else: 
             self.selected_params = self.hyper_params
 
@@ -89,7 +92,7 @@ class Predictor():
 
     
     def fit(self):
-        print("Fitting {}".format(self.model_name))
+        if self.verbose: print("Fitting {}".format(self.model_name))
         self.model.fit(self.data['X_train'], self.data['y_train'])
         self.data['y_predict'] = self.model.predict(self.data['X_test'])
 
@@ -221,16 +224,17 @@ class Predictor():
 
         self.data['model'] = self.model
         if city_scaler: self.data['scaler'] = city_scaler[city]
-    
-        print('--------------------')
-        print('Metrics of Model:')
-        print("R2: ", round(self.data['r2_model'],3))        
-        print(f'Metrics of predicting {self.target}:')
-        print('R2: {}'.format(round(self.data['r2_pred'],3)))
-        print('MAE: {} m'.format(round(self.data['mae_pred'],1)))
-        print('RMSE: {} m'.format(round(self.data['rmse_pred'],1)))
-        print('Mean sample: {}'.format(round(self.data['mean_sample'],1)))
-        print('Std sample: {}'.format(round(self.data['std_sample'],1)))
+
+        if self.verbose:
+            print('--------------------')
+            print('Metrics of Model:')
+            print("R2: ", round(self.data['r2_model'],3))        
+            print(f'Metrics of predicting {self.target}:')
+            print('R2: {}'.format(round(self.data['r2_pred'],3)))
+            print('MAE: {} m'.format(round(self.data['mae_pred'],1)))
+            print('RMSE: {} m'.format(round(self.data['rmse_pred'],1)))
+            print('Mean sample: {}'.format(round(self.data['mean_sample'],1)))
+            print('Std sample: {}'.format(round(self.data['std_sample'],1)))
 
 
     def get_shap(self, eval_shap, causal_order):
@@ -391,7 +395,7 @@ class MlXval():
         self.city_scaler = None
 
 
-    def load_data(self): 
+    def load_data(self,verbose=True): 
         print('Initialising ml run for {}'.format(self.city_name))
         self.df, self.city_scaler = utils_ml.load_cities_sample(city_names = self.city_name, 
                                                                 target = self.target, 
@@ -400,12 +404,12 @@ class MlXval():
                                                                 bound = self.bound, 
                                                                 features = self.features, 
                                                                 norm_cent = self.norm_cent,
-                                                                show = True,
+                                                                verbose = verbose,
                                                                 clean_kwargs = self.clean_kwargs)
         self.df, self.sample_size = utils_ml.sample_data(self.df, self.sample_size) # sampling might conflict rescaling
                    
 
-    def city_kfold(self):
+    def city_kfold(self, verbose=True):
         self.data_sum = {}
         for city in self.city_name:
             print('-----------')
@@ -415,7 +419,8 @@ class MlXval():
                              self.target,
                              self.features, 
                              self.split, 
-                             self.hyper_params)
+                             self.hyper_params,
+                             verbose = verbose)
             city_tree.splitting(city, len(self.city_name))
             city_tree.select_model()
             city_tree.tune_hyperparameter()
@@ -446,7 +451,7 @@ class MlXval():
                     self.data_sum[city+'_scaler'] = self.city_scaler[city]
 
 
-    def kfold(self): 
+    def kfold(self, verbose=True): 
         self.data_sum = {}
         print('-----------')
         print(f'Starting {self.folds} fold CV...')
@@ -455,7 +460,8 @@ class MlXval():
                         self.target,
                         self.features, 
                         self.split, 
-                        self.hyper_params)
+                        self.hyper_params,
+                        verbose = verbose)
         tree.select_model()
         tree.cv_fold(self.folds, self.eval_shap, self.causal_order)
         tree.results()

@@ -185,7 +185,7 @@ class CausalGraphDiscovery():
                                                 bound = self.bound, # TODO if necessary add to yml
                                                 features = self.features,
                                                 norm_cent = self.normalize,
-                                                show = True,
+                                                verbose = True,
                                                 clean_kwargs=self.clean_kwargs) 
 
 
