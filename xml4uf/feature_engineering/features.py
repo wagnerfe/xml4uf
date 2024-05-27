@@ -9,7 +9,7 @@ sys.path.append(PROJECT_SRC_PATH)
 
 import utils.utils as utils
 from ufo_map.Feature_engineering.city_level import shortest_distance_graph,city_area_km2, network_length_km, land_use_entropy
-from ufo_map.Feature_engineering.socio_econ import feature_in_buffer, trips_per_capita, employment_access
+from ufo_map.Feature_engineering.socio_econ import feature_in_buffer, trips_per_capita, employment_access, employment_access_v2
 from ufo_map.Feature_engineering.streets import ft_intersections_per_buffer
 
 FT_POP_DENSE = 'total_population'
@@ -238,6 +238,13 @@ class Features():
             for threshold in [0.01, 0.05, 0.1, 0.2]:
                 feature_name_tmp = feature_name+'_'+str(threshold).split('.')[1]
                 df_tmp = employment_access(self.gdf, self.gdf_employment, feature_name_tmp, threshold, self.id_col)[[self.id_col,feature_name_tmp]]
+                self._save_feature(df_tmp,feature_name_tmp)
+        
+        if 'ft_employment_access_v2' in feature_name:
+            self._load_feature_data(['employment'])
+            for threshold in [0.01, 0.05, 0.1]:
+                feature_name_tmp = feature_name+'_'+str(threshold).split('.')[1]
+                df_tmp = employment_access_v2(self.gdf, self.gdf_employment, feature_name_tmp, threshold, self.id_col)[[self.id_col,feature_name_tmp]]
                 self._save_feature(df_tmp,feature_name_tmp)
 
         if feature_name == 'ft_city_area_km2': 
