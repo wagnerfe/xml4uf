@@ -242,7 +242,7 @@ class Features():
         
         if 'ft_employment_access_v2' in feature_name:
             self._load_feature_data(['employment'])
-            for threshold in [0.01, 0.05, 0.1]:
+            for threshold in [0.01, 0.05]:
                 feature_name_tmp = feature_name+'_'+str(threshold).split('.')[1]
                 df_tmp = employment_access_v2(self.gdf, self.gdf_employment, feature_name_tmp, threshold, self.id_col)[[self.id_col,feature_name_tmp]]
                 self._save_feature(df_tmp,feature_name_tmp)
