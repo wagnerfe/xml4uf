@@ -67,7 +67,7 @@ FEATURE_NAMES = {'distance_m':'VKT',
                 'ft_dist_airport':'Airport Access',
                 'ft_pop_dense_meta':'Population Density',
                 'ft_pop_dense':'Population Density',
-                'ft_pop_corr': 'Population Density'
+                'ft_pop_corr': 'Population Density',
                 'ft_job_dense': 'Job Density',
                 'ft_trips_capita_pop_dense_meta':'Trips per Capita',
                 'score_spatiotemporal': 'Transit Access',
