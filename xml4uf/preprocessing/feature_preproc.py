@@ -792,12 +792,13 @@ class CorrectArea():
     def __init__(
         self,
         name = None,
+        path_root=None,
         ):
         
         self.city_name = name
         self.buffersize=50
         self.crs_local = utils.get_crs_local(self.city_name)
-        self.path_root = utils.get_path_root() 
+        self.path_root = path_root
 
 
     def initalize(self):
@@ -882,7 +883,7 @@ class PreprocessFeatures:
         if feature == "employment":
             return Employment(self.city_name, self.path_root)
         if feature == "correct_area":
-            return CorrectArea(self.city_name)
+            return CorrectArea(self.city_name,self.path_root)
 
 
     def preprocess(self):
