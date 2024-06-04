@@ -788,6 +788,42 @@ class Employment():
         return self.gdf_emp
 
 
+class CorrectArea():
+    def __init__(
+        self,
+        name = None,
+        ):
+        
+        self.city_name = name
+        self.buffersize=50
+        self.crs_local = utils.get_crs_local(self.city_name)
+        self.path_root = utils.get_path_root() 
+
+
+    def initalize(self):
+        g = utils.read_graph(self.path_root, self.city_name, 'full')
+        self.gdf = utils.init_geoms(self.path_root,self.city_name,'fua')
+
+        ox_graph = check_adjust_graph_crs(self.gdf,g)
+        _, gdf_edges = ox.utils_graph.graph_to_gdfs(ox_graph)
+        self.gdf_edges = gdf_edges.reset_index()
+
+    
+    def get_street_area(self, buffersize=50):
+        print(f'Getting buffered streets for {self.city_name}')
+        buff_streets = self.gdf_edges.geometry.buffer(buffersize)
+        buff_streets = gpd.GeoDataFrame(geometry=buff_streets)
+        gdf_buff = gpd.GeoDataFrame(geometry=[buff_streets.geometry.unary_union], crs=self.gdf.crs)
+        
+        self.gdf['inter'] = self.gdf.geometry.apply(lambda x: gdf_buff.geometry.iloc[0].intersection(x))
+        self.gdf['intersection_area'] = self.gdf['inter'].area
+        
+    
+    def preproc(self):
+        self.initalize()
+        self.get_street_area()
+        return self.gdf[['tractid','intersection_area','geometry']]
+
 
 class PreprocessFeatures:
     """
@@ -845,6 +881,8 @@ class PreprocessFeatures:
             return Airports(self.city_name, self.path_root, self.path_airport_file)
         if feature == "employment":
             return Employment(self.city_name, self.path_root)
+        if feature == "correct_area":
+            return CorrectArea(self.city_name)
 
 
     def preprocess(self):

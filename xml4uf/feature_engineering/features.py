@@ -70,6 +70,7 @@ class Features():
         self.gdf_airports = None
         self.gdf_transit_access = None
         self.df_lu = None
+        self.correct_area = None
 
     
     def prepare_target(self):
@@ -111,6 +112,8 @@ class Features():
             self.gdf_pop_dense = utils.read_feature_preproc('pop_dense',self.path_root,self.city_name,self.crs_local) 
         if ('pop_dense_meta' in required_data) and (self.gdf_pop_dense_meta is None):
             self.gdf_pop_dense_meta = utils.read_feature_preproc('pop_dense_meta',self.path_root,self.city_name,self.crs_local) 
+        if ('correct_area' in required_data) and (self.correct_area is None):
+            self.correct_area = utils.read_feature_preproc('correct_area',self.path_root,self.city_name,self.crs_local) 
         if ('income' in required_data) and (self.gdf_income is None):
             self.gdf_income = utils.read_feature_preproc('income',self.path_root,self.city_name,self.crs_local) 
         if ('income_groups' in required_data) and (self.gdf_income is None):
@@ -178,6 +181,15 @@ class Features():
             self._load_feature_data(['pop_dense'])
             df_tmp = feature_in_buffer(self.gdf, self.gdf_pop_dense, FT_POP_DENSE, feature_name,
                                         id_col=self.id_col,feature_type='total')[[self.id_col,feature_name]]
+            self._save_feature(df_tmp,feature_name)
+
+        if feature_name == 'ft_pop_corr':
+            self._load_feature_data(['pop_dense','correct_area'])
+            df_tmp = feature_in_buffer(self.gdf, self.gdf_pop_dense, FT_POP_DENSE, feature_name,
+                                        id_col=self.id_col,feature_type='total')[[self.id_col,feature_name]]
+            df_tmp = pd.merge(self.correct_area,df_tmp,on=self.id_col)
+            df_tmp[feature_name] = (df_tmp[feature_name]/self.correct_area['intersection_area'])*1e6
+            df_tmp = df_tmp[[self.id_col,feature_name]]
             self._save_feature(df_tmp,feature_name)
 
         if feature_name == 'ft_job_dense':
