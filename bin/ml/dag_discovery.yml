@@ -46,16 +46,10 @@
   normalize: True
   features: # run params
     - ft_dist_cbd
-    - ft_employment_access_01
-    #- ft_job_dense
+    - ft_employment_access_05
     - ft_pop_dense
-    - ft_income
-    #- ft_transit_access
-    #- ft_lu_entropy_normed
+    - ft_income_groups
     - ft_beta
-    #- ft_dist_airport
-    # # - ft_network_length_km
-    # - ft_city_area_km2
   clean_kwargs: # dict with cleaning params. 
     set_lower_bound: # set_lower_bounds and set_upper_bounds take <feature>:<cutt off value> as dict
       num_trips: 10
@@ -74,40 +68,6 @@
   assumptions: 
     - 'distance_m'
     - 'ft_dist_cbd'
-    - 'ft_income'
+    - 'ft_income_groups'
 
 
-# - name: ['ber','bos','lax','rio','sfo','bog']
-#   folder: 't16_1st_submission'
-#   experiment: 'v1_6_cities_normed_balance_no_airport'
-#   path_root: '/p/projects/eubucco/other_projects/urbanformvmt_global/data'
-#   day_hour: 9
-#   resolution: polygons
-#   feature_sample: Null
-#   fold: Null
-#   max_folds: Null
-#   random_fold: balance_city_samples
-#   normalize: False
-#   features: # run params
-#     - ft_dist_cbd
-#     - ft_employment_access_1
-#     #- ft_job_dense
-#     - ft_pop_dense_meta
-#     - ft_income
-#     - ft_beta
-#     #- ft_dist_airport
-#     # # - ft_network_length_km
-#     # - ft_city_area_km2
-#   target: distance_m # hex: 'distance_m','points_in_hex'; 'polygons': 'p_combined'; 'points':'distance_m'
-#   sample_size: Null
-#   scatter_plot: False
-#   density_plot: False
-#   dag_plot: True
-#   cond_test_name: CMIknn
-#   tau_max: 0 # tigramite params
-#   pc_alpha: 0.025 # [0.1, 0.01,0.001] 
-#   verbosity: 0
-#   assumptions: 
-#     - 'distance_m'
-#     - 'ft_dist_cbd'
-#     - 'ft_income'
